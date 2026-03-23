@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCST Adli Arşiv</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════ GİRİŞ EKRANI ═══════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="blink-dot"></div>
+      <span>OCST ADLİ ARŞİV SİSTEMİ</span>
+      <div class="blink-dot"></div>
+    </div>
+    <div class="login-sub">ORANGE COUNTY SHERIFF'S TECHNOLOGY DIVISION</div>
+    <div class="login-sub2">► SECURE TERMINAL ACCESS ◄</div>
+    <div class="scanline-mini"></div>
+    <div class="login-form">
+      <div class="field-row">
+        <label>KULLANICI ADI :</label>
+        <input type="text" id="login-username" maxlength="32" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field-row">
+        <label>ŞİFRE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</label>
+        <input type="password" id="login-password" maxlength="32" autocomplete="off">
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <button id="login-btn" onclick="doLogin()">[ SİSTEME GİR ]</button>
+    </div>
+    <div class="login-footer">*** YETKİSİZ ERİŞİM YASAKTIR ***</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ ANA SİSTEM ═══════════════════════ -->
+<div id="main-system" style="display:none">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div id="topbar-left">
+      <span class="topbar-title">OCST ADLİ ARŞİV</span>
+      <span class="topbar-sub">// ORANGE COUNTY SHERIFF'S TECHNOLOGY</span>
+    </div>
+    <div id="topbar-right">
+      <span id="current-time"></span>
+      <span class="topbar-sep">|</span>
+      <span id="topbar-user"></span>
+      <span class="topbar-sep">|</span>
+      <button class="logout-btn" onclick="doLogout()">[ ÇIKIŞ ]</button>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusbar">
+    <span class="status-item blink-slow">● SİSTEM AKTİF</span>
+    <span class="status-sep">│</span>
+    <span class="status-item">VERİTABANI: BAĞLI</span>
+    <span class="status-sep">│</span>
+    <span class="status-item">ŞİFRELEME: AES-256</span>
+    <span class="status-sep">│</span>
+    <span class="status-item">TERMINAL: MDC-7</span>
+    <span class="status-sep">│</span>
+    <span id="record-count" class="status-item">KAYIT SAYISI: --</span>
+  </div>
+
+  <div id="content-wrapper">
+
+    <!-- SOL MENÜ -->
+    <div id="sidebar">
+      <div class="sidebar-header">[ MENÜ ]</div>
+      <nav id="menu-nav">
+        <button class="menu-item active" data-menu="kayitlar" onclick="switchMenu('kayitlar', this)">
+          <span class="menu-icon">►</span> KAYITLAR
+        </button>
+        <button class="menu-item" data-menu="kisiler" onclick="switchMenu('kisiler', this)">
+          <span class="menu-icon">►</span> KİŞİLER
+        </button>
+        <button class="menu-item" data-menu="ek-dosyalar" onclick="switchMenu('ek-dosyalar', this)">
+          <span class="menu-icon">►</span> EK DOSYALAR
+        </button>
+        <button class="menu-item" data-menu="gorseller" onclick="switchMenu('gorseller', this)">
+          <span class="menu-icon">►</span> GÖRSELLER
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div>BUILD: 2020.08.08</div>
+        <div>SN: OCST-MDC-7</div>
+      </div>
+    </div>
+
+    <!-- ANA PANEL -->
+    <div id="main-panel">
+
+      <!-- TOPIC LIST VIEW -->
+      <div id="view-list">
+        <div class="panel-header">
+          <span id="list-title">KAYITLAR</span>
+          <button class="new-topic-btn" onclick="showNewTopicForm()">[ + KONU AÇ ]</button>
+        </div>
+        <div class="panel-sub-header">
+          <span class="col-num">#</span>
+          <span class="col-title">KONU BAŞLIĞI</span>
+          <span class="col-author">YAZAN</span>
+          <span class="col-date">TARİH</span>
+        </div>
+        <div id="topic-list">
+          <div class="loading-text">► VERİ YÜKLENİYOR...</div>
+        </div>
+      </div>
+
+      <!-- NEW TOPIC FORM -->
+      <div id="view-new-topic" style="display:none">
+        <div class="panel-header">
+          <span>YENİ KONU AÇ</span>
+          <button class="back-btn" onclick="showList()">[ ◄ GERİ ]</button>
+        </div>
+        <div class="form-container">
+          <div class="form-field">
+            <label class="form-label">KONU BAŞLIĞI <span class="required">*</span></label>
+            <input type="text" id="new-title" class="form-input" maxlength="200" placeholder="Başlık giriniz..." spellcheck="false">
+          </div>
+          <div class="form-field">
+            <label class="form-label">KONU İÇERİĞİ <span class="required">*</span></label>
+            <!-- BBCode Toolbar -->
+            <div class="bbcode-toolbar">
+              <button type="button" class="bb-btn" onclick="bbInsert('[b]','[/b]')" title="Kalın"><b>B</b></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[i]','[/i]')" title="İtalik"><i>I</i></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[u]','[/u]')" title="Altçizgi"><u>U</u></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[s]','[/s]')" title="Üstü çizili"><s>S</s></button>
+              <span class="bb-sep">│</span>
+              <button type="button" class="bb-btn" onclick="bbPromptURL()" title="Link ekle">URL</button>
+              <button type="button" class="bb-btn" onclick="bbPromptIMG()" title="Görsel ekle">IMG</button>
+              <span class="bb-sep">│</span>
+              <button type="button" class="bb-btn" onclick="bbInsert('[quote]','[/quote]')" title="Alıntı">»Q</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[code]','[/code]')" title="Kod">{ }</button>
+              <span class="bb-sep">│</span>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=red]','[/color]')" title="Kırmızı" style="color:#ff4444">■</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=yellow]','[/color]')" title="Sarı" style="color:#ffcc00">■</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=lime]','[/color]')" title="Yeşil" style="color:#00ff88">■</button>
+            </div>
+            <textarea id="new-content" class="form-textarea" placeholder="İçerik giriniz... BBCode desteklenmektedir." spellcheck="false"></textarea>
+          </div>
+          <div id="form-error" class="form-error"></div>
+          <div class="form-actions">
+            <button class="submit-btn" onclick="submitTopic()">[ KAYDET VE YAYINLA ]</button>
+            <button class="cancel-btn" onclick="showList()">[ İPTAL ]</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOPIC DETAIL VIEW -->
+      <div id="view-topic" style="display:none">
+        <div class="panel-header">
+          <span id="detail-menu-label">KAYITLAR</span>
+          <div>
+            <button class="delete-topic-btn" onclick="deleteTopic()">[ SİL ]</button>
+            <button class="back-btn" onclick="showList()">[ ◄ GERİ ]</button>
+          </div>
+        </div>
+        <div id="topic-detail-content"></div>
+
+        <!-- YORUMLAR -->
+        <div class="comments-section">
+          <div class="comments-header">[ YORUMLAR ]</div>
+          <div id="comments-list"></div>
+          <div class="new-comment">
+            <div class="form-field">
+              <div class="bbcode-toolbar">
+                <button type="button" class="bb-btn" onclick="bbInsertComment('[b]','[/b]')"><b>B</b></button>
+                <button type="button" class="bb-btn" onclick="bbInsertComment('[i]','[/i]')"><i>I</i></button>
+                <button type="button" class="bb-btn" onclick="bbInsertComment('[u]','[/u]')"><u>U</u></button>
+                <span class="bb-sep">│</span>
+                <button type="button" class="bb-btn" onclick="bbPromptURLComment()">URL</button>
+                <button type="button" class="bb-btn" onclick="bbPromptIMGComment()">IMG</button>
+              </div>
+              <textarea id="comment-content" class="form-textarea comment-textarea" placeholder="Yorumunuzu yazınız..." spellcheck="false"></textarea>
+            </div>
+            <button class="submit-btn" onclick="submitComment()">[ YORUM EKLE ]</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-panel -->
+  </div><!-- /content-wrapper -->
+
+  <div id="footer-bar">
+    <span>OCST ADLİ ARŞİV SİSTEMİ v2.0 © 2020 ORANGE COUNTY SHERIFF'S DEPARTMENT</span>
+    <span>TÜM ERİŞİMLER KAYIT ALTINDADIR</span>
+  </div>
+
+</div><!-- /main-system -->
+
+<!-- DELETE MODAL -->
+<div id="delete-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">[ SİLME DOĞRULAMASI ]</div>
+    <div class="modal-body">
+      <p>Bu işlemi onaylamak için silme şifresini girin:</p>
+      <input type="password" id="delete-pass" class="form-input" placeholder="Şifre..." maxlength="20">
+      <div id="delete-error" class="form-error"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="delete-confirm-btn" onclick="confirmDelete()">[ SİL ]</button>
+      <button class="cancel-btn" onclick="closeDeleteModal()">[ İPTAL ]</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
