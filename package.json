@@ -1,13 +1,14 @@
 {
   "name": "ocst-bilgi-sistemleri",
-  "version": "3.0.0",
-  "description": "OCST Bilgi Sistemleri Masaüstü",
+  "version": "4.0.0",
+  "description": "OCST Bilgi Sistemleri",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "express-session": "^1.17.3"
+    "express-session": "^1.17.3",
+    "ws": "^8.16.0"
   }
 }
