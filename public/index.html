@@ -3,212 +3,388 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OCST Adli Arşiv</title>
-<link rel="stylesheet" href="style.css">
+<title>OCST BİLGİ SİSTEMLERİ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Tahoma:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="desktop.css">
 </head>
 <body>
 
-<!-- ═══════════════════════ GİRİŞ EKRANI ═══════════════════════ -->
+<!-- ══════════════════════════════════════════
+     GİRİŞ EKRANI (XP Login)
+══════════════════════════════════════════ -->
 <div id="login-screen">
-  <div class="login-box">
-    <div class="login-header">
-      <div class="blink-dot"></div>
-      <span>OCST ADLİ ARŞİV SİSTEMİ</span>
-      <div class="blink-dot"></div>
-    </div>
-    <div class="login-sub">ORANGE COUNTY SHERIFF'S TECHNOLOGY DIVISION</div>
-    <div class="login-sub2">► SECURE TERMINAL ACCESS ◄</div>
-    <div class="scanline-mini"></div>
-    <div class="login-form">
-      <div class="field-row">
-        <label>KULLANICI ADI :</label>
-        <input type="text" id="login-username" maxlength="32" autocomplete="off" spellcheck="false">
+  <!-- Animated dark nature wallpaper -->
+  <div class="login-wallpaper">
+    <div class="wp-layer wp-stars"></div>
+    <div class="wp-layer wp-fog"></div>
+    <div class="wp-layer wp-mountain"></div>
+    <div class="wp-layer wp-treeline"></div>
+    <div class="wp-layer wp-glow"></div>
+  </div>
+
+  <div class="login-panel">
+    <div class="login-top-bar">
+      <div class="login-logo">
+        <div class="logo-shield">⬡</div>
+        <div class="logo-text">
+          <span class="logo-title">OCST BİLGİ SİSTEMLERİ</span>
+          <span class="logo-sub">ORANGE COUNTY SHERIFF'S TECHNOLOGY</span>
+        </div>
       </div>
-      <div class="field-row">
-        <label>ŞİFRE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</label>
-        <input type="password" id="login-password" maxlength="32" autocomplete="off">
-      </div>
-      <div id="login-error" class="login-error"></div>
-      <button id="login-btn" onclick="doLogin()">[ SİSTEME GİR ]</button>
     </div>
-    <div class="login-footer">*** YETKİSİZ ERİŞİM YASAKTIR ***</div>
+
+    <div class="login-divider"></div>
+
+    <div class="login-body">
+      <div class="login-welcome">Sisteme giriş yapmak için bilgilerinizi girin</div>
+
+      <div class="login-user-area">
+        <div class="user-avatar">
+          <div class="avatar-icon">👤</div>
+        </div>
+        <div class="login-fields">
+          <div class="lf-row">
+            <label>Kullanıcı Adı</label>
+            <input type="text" id="login-username" autocomplete="off" spellcheck="false" placeholder="kullanıcı adı...">
+          </div>
+          <div class="lf-row">
+            <label>Şifre</label>
+            <input type="password" id="login-password" autocomplete="off" placeholder="••••••••••">
+          </div>
+          <div id="login-error" class="login-error-msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-divider"></div>
+
+    <div class="login-footer">
+      <button class="login-btn" onclick="doLogin()">
+        <span class="login-btn-arrow">▶</span> Oturumu Aç
+      </button>
+      <div class="login-hint">Şifre: OCSTARŞİV2020</div>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ ANA SİSTEM ═══════════════════════ -->
-<div id="main-system" style="display:none">
+<!-- ══════════════════════════════════════════
+     MASAÜSTÜ
+══════════════════════════════════════════ -->
+<div id="desktop" style="display:none">
 
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <div id="topbar-left">
-      <span class="topbar-title">OCST ADLİ ARŞİV</span>
-      <span class="topbar-sub">// ORANGE COUNTY SHERIFF'S TECHNOLOGY</span>
+  <!-- Wallpaper -->
+  <div class="desktop-wallpaper">
+    <div class="wp-layer wp-stars"></div>
+    <div class="wp-layer wp-fog"></div>
+    <div class="wp-layer wp-mountain"></div>
+    <div class="wp-layer wp-treeline"></div>
+    <div class="wp-layer wp-glow"></div>
+  </div>
+
+  <!-- Masaüstü ikonları -->
+  <div class="desktop-icons">
+
+    <div class="desktop-icon" ondblclick="openApp('arsiv')" onclick="selectIcon(this)">
+      <div class="icon-img">
+        <div class="icon-arsiv">
+          <div class="ic-folder"></div>
+          <div class="ic-badge">ARŞ</div>
+        </div>
+      </div>
+      <div class="icon-label">Adli Arşiv</div>
     </div>
-    <div id="topbar-right">
-      <span id="current-time"></span>
-      <span class="topbar-sep">|</span>
-      <span id="topbar-user"></span>
-      <span class="topbar-sep">|</span>
-      <button class="logout-btn" onclick="doLogout()">[ ÇIKIŞ ]</button>
+
+    <div class="desktop-icon" ondblclick="openApp('cagri')" onclick="selectIcon(this)">
+      <div class="icon-img">
+        <div class="icon-cagri">
+          <div class="ic-radio"></div>
+          <div class="ic-badge">CAD</div>
+        </div>
+      </div>
+      <div class="icon-label">Çağrı Yönetim</div>
+    </div>
+
+    <div class="desktop-icon" ondblclick="openApp('iletisim')" onclick="selectIcon(this)">
+      <div class="icon-img">
+        <div class="icon-iletisim">
+          <div class="ic-mic"></div>
+          <div class="ic-badge">SES</div>
+        </div>
+      </div>
+      <div class="icon-label">İletişim</div>
+    </div>
+
+    <div class="desktop-icon" ondblclick="openApp('ayarlar')" onclick="selectIcon(this)">
+      <div class="icon-img">
+        <div class="icon-ayarlar">
+          <div class="ic-gear">⚙</div>
+        </div>
+      </div>
+      <div class="icon-label">Ayarlar</div>
+    </div>
+
+  </div>
+
+  <!-- ── PENCERELER ── -->
+
+  <!-- ARŞİV PENCERESİ -->
+  <div class="window" id="win-arsiv" style="display:none; width:1000px; height:680px; top:40px; left:60px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-arsiv')">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">📁</span>
+        <span class="titlebar-title">Adli Arşiv — OCST Bilgi Sistemleri</span>
+      </div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-arsiv')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-arsiv')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-arsiv')">✕</button>
+      </div>
+    </div>
+    <div class="window-body" style="padding:0; overflow:hidden;">
+      <iframe id="iframe-arsiv" src="/arsiv/" style="width:100%;height:100%;border:none;"></iframe>
     </div>
   </div>
 
-  <!-- STATUS BAR -->
-  <div id="statusbar">
-    <span class="status-item blink-slow">● SİSTEM AKTİF</span>
-    <span class="status-sep">│</span>
-    <span class="status-item">VERİTABANI: BAĞLI</span>
-    <span class="status-sep">│</span>
-    <span class="status-item">ŞİFRELEME: AES-256</span>
-    <span class="status-sep">│</span>
-    <span class="status-item">TERMINAL: MDC-7</span>
-    <span class="status-sep">│</span>
-    <span id="record-count" class="status-item">KAYIT SAYISI: --</span>
-  </div>
-
-  <div id="content-wrapper">
-
-    <!-- SOL MENÜ -->
-    <div id="sidebar">
-      <div class="sidebar-header">[ MENÜ ]</div>
-      <nav id="menu-nav">
-        <button class="menu-item active" data-menu="kayitlar" onclick="switchMenu('kayitlar', this)">
-          <span class="menu-icon">►</span> KAYITLAR
-        </button>
-        <button class="menu-item" data-menu="kisiler" onclick="switchMenu('kisiler', this)">
-          <span class="menu-icon">►</span> KİŞİLER
-        </button>
-        <button class="menu-item" data-menu="ek-dosyalar" onclick="switchMenu('ek-dosyalar', this)">
-          <span class="menu-icon">►</span> EK DOSYALAR
-        </button>
-        <button class="menu-item" data-menu="gorseller" onclick="switchMenu('gorseller', this)">
-          <span class="menu-icon">►</span> GÖRSELLER
-        </button>
-      </nav>
-      <div class="sidebar-footer">
-        <div>BUILD: 2020.08.08</div>
-        <div>SN: OCST-MDC-7</div>
+  <!-- ÇAĞRI YÖNETİM PENCERESİ -->
+  <div class="window" id="win-cagri" style="display:none; width:860px; height:600px; top:60px; left:100px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-cagri')">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">📡</span>
+        <span class="titlebar-title">Çağrı Yönetim Merkezi — CAD</span>
+      </div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-cagri')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-cagri')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-cagri')">✕</button>
       </div>
     </div>
-
-    <!-- ANA PANEL -->
-    <div id="main-panel">
-
-      <!-- TOPIC LIST VIEW -->
-      <div id="view-list">
-        <div class="panel-header">
-          <span id="list-title">KAYITLAR</span>
-          <button class="new-topic-btn" onclick="showNewTopicForm()">[ + KONU AÇ ]</button>
-        </div>
-        <div class="panel-sub-header">
-          <span class="col-num">#</span>
-          <span class="col-title">KONU BAŞLIĞI</span>
-          <span class="col-author">YAZAN</span>
-          <span class="col-date">TARİH</span>
-        </div>
-        <div id="topic-list">
-          <div class="loading-text">► VERİ YÜKLENİYOR...</div>
-        </div>
+    <div class="window-body cad-body">
+      <!-- CAD ARAYÜZÜ -->
+      <div class="cad-topbar">
+        <span class="cad-status blink-green">● AKTİF</span>
+        <span class="cad-sep">│</span>
+        <span class="cad-info">ÜNİTE: OCST-7 MERKEZ</span>
+        <span class="cad-sep">│</span>
+        <span id="cad-clock" class="cad-info"></span>
+        <span class="cad-sep">│</span>
+        <span class="cad-info cad-warn">BETA — İŞLEVSEL DEĞİL</span>
       </div>
-
-      <!-- NEW TOPIC FORM -->
-      <div id="view-new-topic" style="display:none">
-        <div class="panel-header">
-          <span>YENİ KONU AÇ</span>
-          <button class="back-btn" onclick="showList()">[ ◄ GERİ ]</button>
-        </div>
-        <div class="form-container">
-          <div class="form-field">
-            <label class="form-label">KONU BAŞLIĞI <span class="required">*</span></label>
-            <input type="text" id="new-title" class="form-input" maxlength="200" placeholder="Başlık giriniz..." spellcheck="false">
-          </div>
-          <div class="form-field">
-            <label class="form-label">KONU İÇERİĞİ <span class="required">*</span></label>
-            <!-- BBCode Toolbar -->
-            <div class="bbcode-toolbar">
-              <button type="button" class="bb-btn" onclick="bbInsert('[b]','[/b]')" title="Kalın"><b>B</b></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[i]','[/i]')" title="İtalik"><i>I</i></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[u]','[/u]')" title="Altçizgi"><u>U</u></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[s]','[/s]')" title="Üstü çizili"><s>S</s></button>
-              <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbPromptURL()" title="Link ekle">URL</button>
-              <button type="button" class="bb-btn" onclick="bbPromptIMG()" title="Görsel ekle">IMG</button>
-              <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbInsert('[quote]','[/quote]')" title="Alıntı">»Q</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[code]','[/code]')" title="Kod">{ }</button>
-              <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=red]','[/color]')" title="Kırmızı" style="color:#ff4444">■</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=yellow]','[/color]')" title="Sarı" style="color:#ffcc00">■</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=lime]','[/color]')" title="Yeşil" style="color:#00ff88">■</button>
+      <div class="cad-main">
+        <div class="cad-left">
+          <div class="cad-section-title">[ AKTİF ÇAĞRILAR ]</div>
+          <div class="cad-calls">
+            <div class="cad-call cad-call-high">
+              <span class="call-pri">P1</span>
+              <span class="call-code">10-33</span>
+              <span class="call-loc">Elm St / 4. Cadde</span>
+              <span class="call-unit">OCST-12</span>
             </div>
-            <textarea id="new-content" class="form-textarea" placeholder="İçerik giriniz... BBCode desteklenmektedir." spellcheck="false"></textarea>
+            <div class="cad-call cad-call-med">
+              <span class="call-pri">P2</span>
+              <span class="call-code">10-11</span>
+              <span class="call-loc">Harbor Blvd #240</span>
+              <span class="call-unit">OCST-7</span>
+            </div>
+            <div class="cad-call cad-call-low">
+              <span class="call-pri">P3</span>
+              <span class="call-code">10-94</span>
+              <span class="call-loc">Main St Kuzeyi</span>
+              <span class="call-unit">OCST-3</span>
+            </div>
+            <div class="cad-call cad-call-low">
+              <span class="call-pri">P3</span>
+              <span class="call-code">10-42</span>
+              <span class="call-loc">Merkez Karakol</span>
+              <span class="call-unit">OCST-1</span>
+            </div>
           </div>
-          <div id="form-error" class="form-error"></div>
-          <div class="form-actions">
-            <button class="submit-btn" onclick="submitTopic()">[ KAYDET VE YAYINLA ]</button>
-            <button class="cancel-btn" onclick="showList()">[ İPTAL ]</button>
+
+          <div class="cad-section-title" style="margin-top:12px">[ YENİ ÇAĞRI GİRİŞİ ]</div>
+          <div class="cad-form">
+            <div class="cad-field">
+              <label>Çağrı Kodu</label>
+              <select class="cad-input">
+                <option>10-11 — Hayvan Şikayeti</option>
+                <option>10-15 — Tutuklu Nakliye</option>
+                <option>10-33 — Acil Durum</option>
+                <option>10-42 — Nöbet Sonu</option>
+                <option>10-94 — Hız İhlali</option>
+                <option>10-97 — Olay Yerinde</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label>Konum</label>
+              <input type="text" class="cad-input" placeholder="Adres veya bölge..." spellcheck="false">
+            </div>
+            <div class="cad-field">
+              <label>Öncelik</label>
+              <select class="cad-input">
+                <option>P1 — Kritik</option>
+                <option>P2 — Yüksek</option>
+                <option selected>P3 — Normal</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label>Atanan Ünite</label>
+              <input type="text" class="cad-input" placeholder="OCST-..." spellcheck="false">
+            </div>
+            <div class="cad-field">
+              <label>Notlar</label>
+              <textarea class="cad-input cad-textarea" placeholder="Çağrı notları..." spellcheck="false"></textarea>
+            </div>
+            <button class="cad-submit" onclick="cadSubmit()">[ ÇAĞRI OLUŞTUR ]</button>
+          </div>
+        </div>
+
+        <div class="cad-right">
+          <div class="cad-section-title">[ ÜNİTE DURUMU ]</div>
+          <div class="cad-units">
+            <div class="cad-unit unit-available"><span class="unit-id">OCST-1</span><span class="unit-status">MÜSAİT</span></div>
+            <div class="cad-unit unit-busy"><span class="unit-id">OCST-3</span><span class="unit-status">MEŞGUL</span></div>
+            <div class="cad-unit unit-busy"><span class="unit-id">OCST-7</span><span class="unit-status">MEŞGUL</span></div>
+            <div class="cad-unit unit-available"><span class="unit-id">OCST-9</span><span class="unit-status">MÜSAİT</span></div>
+            <div class="cad-unit unit-busy"><span class="unit-id">OCST-12</span><span class="unit-status">MEŞGUL</span></div>
+            <div class="cad-unit unit-offline"><span class="unit-id">OCST-15</span><span class="unit-status">ÇEVRIMDIŞI</span></div>
+          </div>
+
+          <div class="cad-section-title" style="margin-top:14px">[ FREKANS ]</div>
+          <div class="cad-freq">
+            <div class="freq-bar">
+              <div class="freq-label">CH1 — TAKTİK</div>
+              <div class="freq-wave"><div class="freq-anim"></div></div>
+            </div>
+            <div class="freq-bar">
+              <div class="freq-label">CH2 — YEDEK</div>
+              <div class="freq-wave freq-quiet"><div class="freq-anim-slow"></div></div>
+            </div>
+          </div>
+
+          <div class="cad-section-title" style="margin-top:14px">[ OLAY LOG ]</div>
+          <div class="cad-log">
+            <div class="log-entry">[08:42] OCST-12 → P1 atandı</div>
+            <div class="log-entry">[08:39] OCST-7 → 10-97 bildirdi</div>
+            <div class="log-entry">[08:31] OCST-3 → 10-94 yanıtladı</div>
+            <div class="log-entry">[08:20] OCST-1 → Nöbet başlattı</div>
+            <div class="log-entry log-sys">[08:00] SİSTEM AKTIF — CAD v2.4</div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- TOPIC DETAIL VIEW -->
-      <div id="view-topic" style="display:none">
-        <div class="panel-header">
-          <span id="detail-menu-label">KAYITLAR</span>
+  <!-- İLETİŞİM PENCERESİ -->
+  <div class="window" id="win-iletisim" style="display:none; width:420px; height:560px; top:50px; left:140px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-iletisim')">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">🎙️</span>
+        <span class="titlebar-title">İletişim — Ses Kanalı</span>
+      </div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-iletisim')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-iletisim')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-iletisim')">✕</button>
+      </div>
+    </div>
+    <div class="window-body" style="padding:0; display:flex; flex-direction:column; background:#1a1a2e;">
+      <!-- Üst bilgi -->
+      <div class="comm-header">
+        <div class="comm-channel-info">
+          <div class="comm-dot blink-green"></div>
           <div>
-            <button class="delete-topic-btn" onclick="deleteTopic()">[ SİL ]</button>
-            <button class="back-btn" onclick="showList()">[ ◄ GERİ ]</button>
-          </div>
-        </div>
-        <div id="topic-detail-content"></div>
-
-        <!-- YORUMLAR -->
-        <div class="comments-section">
-          <div class="comments-header">[ YORUMLAR ]</div>
-          <div id="comments-list"></div>
-          <div class="new-comment">
-            <div class="form-field">
-              <div class="bbcode-toolbar">
-                <button type="button" class="bb-btn" onclick="bbInsertComment('[b]','[/b]')"><b>B</b></button>
-                <button type="button" class="bb-btn" onclick="bbInsertComment('[i]','[/i]')"><i>I</i></button>
-                <button type="button" class="bb-btn" onclick="bbInsertComment('[u]','[/u]')"><u>U</u></button>
-                <span class="bb-sep">│</span>
-                <button type="button" class="bb-btn" onclick="bbPromptURLComment()">URL</button>
-                <button type="button" class="bb-btn" onclick="bbPromptIMGComment()">IMG</button>
-              </div>
-              <textarea id="comment-content" class="form-textarea comment-textarea" placeholder="Yorumunuzu yazınız..." spellcheck="false"></textarea>
-            </div>
-            <button class="submit-btn" onclick="submitComment()">[ YORUM EKLE ]</button>
+            <div class="comm-channel-name">OCST — Genel Ses Kanalı</div>
+            <div class="comm-channel-sub">Tüm personel erişebilir</div>
           </div>
         </div>
       </div>
-
-    </div><!-- /main-panel -->
-  </div><!-- /content-wrapper -->
-
-  <div id="footer-bar">
-    <span>OCST ADLİ ARŞİV SİSTEMİ v2.0 © 2020 ORANGE COUNTY SHERIFF'S DEPARTMENT</span>
-    <span>TÜM ERİŞİMLER KAYIT ALTINDADIR</span>
-  </div>
-
-</div><!-- /main-system -->
-
-<!-- DELETE MODAL -->
-<div id="delete-modal" style="display:none">
-  <div class="modal-box">
-    <div class="modal-header">[ SİLME DOĞRULAMASI ]</div>
-    <div class="modal-body">
-      <p>Bu işlemi onaylamak için silme şifresini girin:</p>
-      <input type="password" id="delete-pass" class="form-input" placeholder="Şifre..." maxlength="20">
-      <div id="delete-error" class="form-error"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="delete-confirm-btn" onclick="confirmDelete()">[ SİL ]</button>
-      <button class="cancel-btn" onclick="closeDeleteModal()">[ İPTAL ]</button>
+      <!-- Daily.co iframe -->
+      <div style="flex:1; position:relative;">
+        <iframe
+          id="daily-iframe"
+          src=""
+          allow="camera; microphone; fullscreen; speaker; display-capture"
+          style="width:100%; height:100%; border:none; background:#111;"
+        ></iframe>
+        <div id="comm-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d1117;gap:16px;">
+          <div style="font-size:48px;">🎙️</div>
+          <div style="color:#00cc44;font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:2px;">OCST SES KANALI</div>
+          <div style="color:#666;font-family:'Share Tech Mono',monospace;font-size:11px;text-align:center;padding:0 20px;">Kanala katılmak için aşağıdaki butona basın.<br>Mikrofon izni gereklidir.</div>
+          <button class="comm-join-btn" onclick="joinVoice()">[ KANALA KATIL ]</button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="app.js"></script>
+  <!-- AYARLAR PENCERESİ -->
+  <div class="window" id="win-ayarlar" style="display:none; width:400px; height:340px; top:80px; left:180px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-ayarlar')">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">⚙️</span>
+        <span class="titlebar-title">Ayarlar</span>
+      </div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-ayarlar')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-ayarlar')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-ayarlar')">✕</button>
+      </div>
+    </div>
+    <div class="window-body" style="padding:20px;">
+      <div class="settings-row">
+        <div class="settings-label">Oturum Açan</div>
+        <div class="settings-value" id="settings-username">—</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Sistem</div>
+        <div class="settings-value">OCST BİLGİ SİSTEMLERİ v3.0</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Build</div>
+        <div class="settings-value">2020.08.08 — MDC-7</div>
+      </div>
+      <div class="settings-divider"></div>
+      <button class="settings-logout-btn" onclick="doLogout()">[ OTURUMU KAPAT ]</button>
+    </div>
+  </div>
+
+  <!-- GÖREV ÇUBUĞU -->
+  <div id="taskbar">
+    <div id="taskbar-start" onclick="toggleStartMenu()">
+      <span class="start-logo">⬡</span>
+      <span class="start-text">OCST</span>
+    </div>
+    <div id="taskbar-windows"></div>
+    <div id="taskbar-tray">
+      <span id="taskbar-time"></span>
+    </div>
+  </div>
+
+  <!-- START MENÜSÜ -->
+  <div id="start-menu" style="display:none">
+    <div class="start-header">
+      <div class="start-avatar">👤</div>
+      <div class="start-username" id="start-username"></div>
+    </div>
+    <div class="start-items">
+      <div class="start-item" onclick="openApp('arsiv'); toggleStartMenu()">
+        <span class="si-icon">📁</span> Adli Arşiv
+      </div>
+      <div class="start-item" onclick="openApp('cagri'); toggleStartMenu()">
+        <span class="si-icon">📡</span> Çağrı Yönetim
+      </div>
+      <div class="start-item" onclick="openApp('iletisim'); toggleStartMenu()">
+        <span class="si-icon">🎙️</span> İletişim
+      </div>
+      <div class="start-item" onclick="openApp('ayarlar'); toggleStartMenu()">
+        <span class="si-icon">⚙️</span> Ayarlar
+      </div>
+    </div>
+    <div class="start-footer">
+      <button class="start-logout" onclick="doLogout()">⏻ Oturumu Kapat</button>
+    </div>
+  </div>
+
+</div><!-- /desktop -->
+
+<script src="desktop.js"></script>
 </body>
 </html>
