@@ -646,10 +646,17 @@ function openApp(appKey) {
   const app = APP_MAP[appKey]; if (!app) return;
   const win = document.getElementById(app.winId); if (!win) return;
 
-  // Arşiv iframe — sadece ilk açılışta yükle
+  // Arşiv iframe — sadece ilk açılışta yükle, sonra postMessage ile kullanıcı gönder
   if (appKey === 'arsiv') {
     const iframe = document.getElementById('arsiv-iframe');
-    if (iframe && !iframe.src) iframe.src = '/arsiv/';
+    if (iframe && !iframe.src) {
+      iframe.src = '/arsiv/';
+      iframe.onload = () => {
+        try { iframe.contentWindow.postMessage({ type: 'OCST_LOGIN', username: currentUser }, '*'); } catch {}
+      };
+    } else if (iframe && iframe.src) {
+      try { iframe.contentWindow.postMessage({ type: 'OCST_LOGIN', username: currentUser }, '*'); } catch {}
+    }
   }
 
   if (win.style.display !== 'none' && !minimized[app.winId]) { focusWindow(app.winId); return; }

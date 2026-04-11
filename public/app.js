@@ -53,7 +53,7 @@ function startApp(username) {
   startListRefresh();
 }
 
-// Sayfa yüklenince — sadece bir kez session kontrolü yap, döngüye girme
+// Sayfa yüklenince — postMessage veya session kontrolü ile giriş
 document.addEventListener('DOMContentLoaded', () => {
   // Enter ile giriş
   ['login-username','login-password'].forEach(id => {
@@ -61,11 +61,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
   });
 
-  // Session kontrolü — sadece tek seferlik, setTimeout veya interval YOK
+  // postMessage dinleyici — masaüstü iframe'e kullanıcı adını gönderir
+  window.addEventListener('message', e => {
+    if (e.data && e.data.type === 'OCST_LOGIN' && e.data.username && !appReady) {
+      startApp(e.data.username);
+    }
+  });
+
+  // Yedek: session kontrolü (doğrudan /arsiv/ adresine girilirse çalışır)
   fetch('/api/me')
     .then(r => r.json())
     .then(d => { if (d.loggedIn) startApp(d.username); })
-    .catch(() => {}); // Hata olursa login ekranında kal
+    .catch(() => {});
 });
 
 async function doLogout() {
