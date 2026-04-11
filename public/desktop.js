@@ -3,7 +3,7 @@
 ══════════════════════════════════════════════════════ */
 
 const SITE_PASSWORD = 'OCSTARŞİV2020';
-const DAILY_URL     = 'https://ocst-iletisim.daily.co/ocst-iletisim';
+const DAILY_URL     = 'https://meet.jit.si/ocst-iletisim-2020';
 
 let currentUser  = '';
 let zCounter     = 200;
