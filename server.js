@@ -31,7 +31,7 @@ function genId()        { return Date.now().toString(36)+Math.random().toString(
 // Buraya kendi bilgilerini gir:
 const DISCORD_WEBHOOK  = 'https://discord.com/api/webhooks/1466651197363454072/LbukP7UrHVqusJLzx7f7s1PMatzpB2L20h5LNT41NeUtLCRe9OMNc9rPlhh9_rrO_34S';
 const GMAIL_USER       = 'ladebut619@gmail.com';
-const GMAIL_PASSWORD   = 'uyeowgtypypdupqr
+const GMAIL_PASSWORD   = 'uyeowgtypypdupqr'
 '; // 16 haneli uygulama şifresi
 const NOTIFY_EMAILS    = [                                 // Bildirim gidecek adresler
   'ladebut619@gmail.com',
