@@ -61,6 +61,10 @@
       <div class="icon-img"><div class="icon-cagri"><div class="ic-radio"></div><div class="ic-badge">CAD</div></div></div>
       <div class="icon-label">Çağrı Yönetim</div>
     </div>
+    <div class="desktop-icon" ondblclick="openApp('personel')" onclick="selectIcon(this)">
+      <div class="icon-img"><div class="icon-personel"><div class="ic-badge">PRS</div></div></div>
+      <div class="icon-label">Personel</div>
+    </div>
     <div class="desktop-icon" ondblclick="openApp('iletisim')" onclick="selectIcon(this)">
       <div class="icon-img"><div class="icon-iletisim"><div class="ic-mic"></div><div class="ic-badge">SES</div></div></div>
       <div class="icon-label">İletişim</div>
@@ -82,16 +86,16 @@
       </div>
     </div>
     <div class="window-body" style="padding:0;overflow:hidden;">
-      <iframe src="/arsiv/" style="width:100%;height:100%;border:none;"></iframe>
+      <iframe id="arsiv-iframe" src="" style="width:100%;height:100%;border:none;"></iframe>
     </div>
   </div>
 
   <!-- ══ CAD PENCERESİ ══ -->
-  <div class="window" id="win-cagri" style="display:none;width:1100px;height:700px;top:30px;left:80px;">
+  <div class="window" id="win-cagri" style="display:none;width:1140px;height:720px;top:30px;left:80px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-cagri')">
       <div class="titlebar-left">
         <span class="titlebar-icon">📡</span>
-        <span class="titlebar-title">Çağrı Yönetim Merkezi — CAD v4.0</span>
+        <span class="titlebar-title">Çağrı Yönetim Merkezi — CAD v4.1</span>
         <span id="cad-panic-count" class="cad-panic-badge" style="display:none">0 PANİK</span>
       </div>
       <div class="titlebar-btns">
@@ -101,7 +105,6 @@
       </div>
     </div>
     <div class="window-body cad-body">
-      <!-- Üst bar -->
       <div class="cad-topbar">
         <span class="cad-dot blink-red" id="cad-ws-dot">●</span>
         <span id="cad-ws-label" class="cad-info" style="color:#666">BAĞLANIYOR...</span>
@@ -123,6 +126,7 @@
               <button class="cad-filter panic" onclick="filterCalls('panic',this)">PANİK</button>
               <button class="cad-filter" onclick="filterCalls('bekliyor',this)">BEKLİYOR</button>
               <button class="cad-filter" onclick="filterCalls('yanitlandi',this)">YANITLANDI</button>
+              <button class="cad-filter" onclick="filterCalls('kapatildi',this)">KAPALI</button>
             </div>
           </div>
           <div id="cad-call-list" class="cad-call-list">
@@ -141,16 +145,11 @@
           </div>
         </div>
 
-        <!-- SAĞ: Birimler + Log -->
+        <!-- SAĞ: Personel + Log -->
         <div class="cad-right">
-          <div class="cad-section-hdr"><span>[ BİRİM DURUMU ]</span></div>
-          <div class="cad-units">
-            <div class="cad-unit unit-available"><span class="unit-id">OCST-1</span><span class="unit-status">MÜSAİT</span></div>
-            <div class="cad-unit unit-busy"><span class="unit-id">OCST-3</span><span class="unit-status">MEŞGUL</span></div>
-            <div class="cad-unit unit-busy"><span class="unit-id">OCST-7</span><span class="unit-status">MEŞGUL</span></div>
-            <div class="cad-unit unit-available"><span class="unit-id">OCST-9</span><span class="unit-status">MÜSAİT</span></div>
-            <div class="cad-unit unit-busy"><span class="unit-id">OCST-12</span><span class="unit-status">MEŞGUL</span></div>
-            <div class="cad-unit unit-offline"><span class="unit-id">OCST-15</span><span class="unit-status">ÇEVRİMDIŞI</span></div>
+          <div class="cad-section-hdr"><span>[ AKTİF PERSONEL ]</span></div>
+          <div id="cad-units" class="cad-units">
+            <div class="cad-empty" style="font-size:10px;padding:8px">Personel yükleniyor...</div>
           </div>
 
           <div class="cad-section-hdr" style="margin-top:12px"><span>[ FREKANS ]</span></div>
@@ -164,6 +163,35 @@
             <div class="log-entry log-sys">[--:--] SİSTEM BAŞLATILDI</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PERSONEL PENCERESİ ══ -->
+  <div class="window" id="win-personel" style="display:none;width:500px;height:460px;top:50px;left:120px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-personel')">
+      <div class="titlebar-left"><span class="titlebar-icon">👥</span><span class="titlebar-title">Personel Takip — Aktif Kullanıcılar</span></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-personel')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-personel')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-personel')">✕</button>
+      </div>
+    </div>
+    <div class="window-body" style="padding:0;">
+      <div class="pers-topbar">
+        <span class="pers-dot blink-green">●</span>
+        <span id="pers-count" class="pers-count">0 AKTİF PERSONEL</span>
+        <span class="pers-sep">│</span>
+        <span class="pers-note">Çıkış yapıldığında otomatik silinir</span>
+      </div>
+      <div class="pers-header-row">
+        <span class="ph-name">KULLANICI ADI</span>
+        <span class="ph-time">GİRİŞ SAATİ</span>
+        <span class="ph-seen">SON AKTİVİTE</span>
+        <span class="ph-status">DURUM</span>
+      </div>
+      <div id="pers-list" class="pers-list">
+        <div class="pers-empty">Henüz aktif personel yok.</div>
       </div>
     </div>
   </div>
@@ -201,7 +229,7 @@
   </div>
 
   <!-- ══ AYARLAR PENCERESİ ══ -->
-  <div class="window" id="win-ayarlar" style="display:none;width:400px;height:340px;top:80px;left:180px;">
+  <div class="window" id="win-ayarlar" style="display:none;width:400px;height:360px;top:80px;left:180px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-ayarlar')">
       <div class="titlebar-left"><span class="titlebar-icon">⚙️</span><span class="titlebar-title">Ayarlar</span></div>
       <div class="titlebar-btns">
@@ -212,7 +240,7 @@
     </div>
     <div class="window-body" style="padding:20px">
       <div class="settings-row"><div class="settings-label">Oturum Açan</div><div class="settings-value" id="settings-username">—</div></div>
-      <div class="settings-row"><div class="settings-label">Sistem</div><div class="settings-value">OCST BİLGİ SİSTEMLERİ v4.0</div></div>
+      <div class="settings-row"><div class="settings-label">Sistem</div><div class="settings-value">OCST BİLGİ SİSTEMLERİ v4.1</div></div>
       <div class="settings-row"><div class="settings-label">Build</div><div class="settings-value">2020.08.08 — MDC-7</div></div>
       <div class="settings-divider"></div>
       <button class="settings-logout-btn" onclick="doLogout()">[ OTURUMU KAPAT ]</button>
@@ -240,6 +268,7 @@
     <div class="start-items">
       <div class="start-item" onclick="openApp('arsiv');toggleStartMenu()"><span class="si-icon">📁</span> Adli Arşiv</div>
       <div class="start-item" onclick="openApp('cagri');toggleStartMenu()"><span class="si-icon">📡</span> Çağrı Yönetim</div>
+      <div class="start-item" onclick="openApp('personel');toggleStartMenu()"><span class="si-icon">👥</span> Personel</div>
       <div class="start-item" onclick="openApp('iletisim');toggleStartMenu()"><span class="si-icon">🎙️</span> İletişim</div>
       <div class="start-item" onclick="openApp('ayarlar');toggleStartMenu()"><span class="si-icon">⚙️</span> Ayarlar</div>
     </div>
@@ -266,14 +295,35 @@
     </div>
   </div>
 
-  <!-- Çağrı Detay Modal -->
-  <div id="call-modal" style="display:none">
-    <div class="cm-box">
-      <div class="cm-header">
-        <span id="cm-title">ÇAĞRI DETAYI</span>
-        <button onclick="closeCallModal()" style="background:transparent;border:none;color:#aaa;cursor:pointer;font-size:14px">✕</button>
+  <!-- SİLME MODAL -->
+  <div id="delete-modal-cad" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+    <div class="dm-box">
+      <div class="dm-header">[ ÇAĞRI SİLME DOĞRULAMASI ]</div>
+      <div class="dm-body">
+        <p>Bu işlemi onaylamak için silme şifresini girin:</p>
+        <input type="password" id="cad-delete-pass" class="dm-input" placeholder="Şifre..." maxlength="20">
+        <div id="cad-delete-error" class="dm-error"></div>
       </div>
-      <div class="cm-body" id="cm-body"></div>
+      <div class="dm-actions">
+        <button class="dm-confirm-btn" onclick="confirmCADDelete()">[ SİL ]</button>
+        <button class="dm-cancel-btn" onclick="closeCADDeleteModal()">[ İPTAL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATAMA MODAL -->
+  <div id="assign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+    <div class="dm-box">
+      <div class="dm-header">[ PERSONEL ATAMA ]</div>
+      <div class="dm-body">
+        <p style="margin-bottom:10px;color:#8aaccc;font-size:11px;">Çağrıya atanacak personeli seçin:</p>
+        <div id="assign-personnel-list" class="assign-list"></div>
+        <div id="assign-error" class="dm-error"></div>
+      </div>
+      <div class="dm-actions">
+        <button class="dm-cancel-btn" onclick="closeAssignModal()">[ İPTAL ]</button>
+        <button class="dm-confirm-btn dm-btn-red" onclick="removeAssignment()">[ ATMAMA KALDIR ]</button>
+      </div>
     </div>
   </div>
 

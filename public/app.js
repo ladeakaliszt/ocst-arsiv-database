@@ -1,12 +1,14 @@
 /* ═══════════════════════════════════════════════════════
-   OCST ADLİ ARŞİV — app.js v3
+   OCST ADLİ ARŞİV — app.js v3.1
    ═══════════════════════════════════════════════════════ */
 
 let currentMenu    = 'kayitlar';
 let currentTopicId = null;
 let deleteTarget   = null;
 let pollInterval   = null;
-let allTopics      = [];   // arama için cache
+let listRefresh    = null;
+let allTopics      = [];
+let appReady       = false;  // Başlatma tamamlandı mı?
 
 const MENU_LABELS = {
   'kayitlar':    'KAYITLAR',
@@ -18,7 +20,8 @@ const MENU_LABELS = {
 // ─── SAAT ────────────────────────────────────────────────
 function updateClock() {
   const now = new Date(), pad = n => String(n).padStart(2,'0');
-  document.getElementById('current-time').textContent =
+  const el = document.getElementById('current-time');
+  if (el) el.textContent =
     `${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
@@ -38,24 +41,41 @@ async function doLogin() {
 }
 
 function startApp(username) {
+  if (appReady) return;   // Çift çağrıyı engelle
+  appReady = true;
+
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-system').style.display  = 'flex';
   document.getElementById('topbar-user').textContent    = `KULLANICI: ${username}`;
   setInterval(updateClock, 1000);
   updateClock();
   switchMenu('kayitlar', document.querySelector('.menu-item[data-menu="kayitlar"]'));
+  startListRefresh();
 }
 
+// Sayfa yüklenince — sadece bir kez session kontrolü yap, döngüye girme
 document.addEventListener('DOMContentLoaded', () => {
-  ['login-username','login-password'].forEach(id =>
-    document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); })
-  );
-  fetch('/api/me').then(r=>r.json()).then(d => { if (d.loggedIn) startApp(d.username); });
+  // Enter ile giriş
+  ['login-username','login-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+  });
+
+  // Session kontrolü — sadece tek seferlik, setTimeout veya interval YOK
+  fetch('/api/me')
+    .then(r => r.json())
+    .then(d => { if (d.loggedIn) startApp(d.username); })
+    .catch(() => {}); // Hata olursa login ekranında kal
 });
 
 async function doLogout() {
   await fetch('/api/logout', { method:'POST' });
-  location.reload();
+  // Iframe içindeyse sadece bu sayfayı sıfırla
+  appReady = false;
+  document.getElementById('main-system').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  stopPolling();
+  stopListRefresh();
 }
 
 // ─── MENÜ ────────────────────────────────────────────────
@@ -84,9 +104,9 @@ function showNewTopicForm() {
   document.getElementById('new-content').value = '';
   document.getElementById('new-tag').value     = '';
   document.getElementById('form-error').textContent = '';
-  // Etiket seçimini sıfırla
   document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('tag-selected'));
   document.querySelector('.tag-btn[data-tag=""]').classList.add('tag-selected');
+  stopListRefresh();
 }
 
 function showTopicDetail(topicId) {
@@ -97,6 +117,7 @@ function showTopicDetail(topicId) {
   document.getElementById('detail-menu-label').textContent = MENU_LABELS[currentMenu];
   loadTopicDetail(topicId);
   startPolling(topicId);
+  stopListRefresh();
 }
 
 // ─── ETİKET SEÇİCİ ───────────────────────────────────────
@@ -112,7 +133,11 @@ async function loadTopics() {
   listEl.innerHTML = '<div class="loading-text">► VERİ YÜKLENİYOR...</div>';
   try {
     const res = await fetch(`/api/topics/${currentMenu}`);
-    if (res.status === 401) { location.reload(); return; }
+    if (res.status === 401) {
+      // Session düştü, login'e dön — location.reload() KULLANMA (iframe döngüsü yapar)
+      doLogout();
+      return;
+    }
     allTopics = await res.json();
     renderTopics(allTopics);
   } catch {
@@ -145,8 +170,7 @@ function renderTopics(topics) {
 function filterTopics() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   if (!q) { renderTopics(allTopics); return; }
-  const filtered = allTopics.filter(t => t.title.toLowerCase().includes(q));
-  renderTopics(filtered);
+  renderTopics(allTopics.filter(t => t.title.toLowerCase().includes(q)));
 }
 
 function clearSearch() {
@@ -213,7 +237,7 @@ async function submitTopic() {
   if (!content) { errEl.textContent = '► KONU İÇERİĞİ ZORUNLUDUR'; return; }
   try {
     const data = await post('/api/topics', { menu: currentMenu, title, content, tag });
-    if (data.success) { showList(); loadTopics(); }
+    if (data.success) { showList(); loadTopics(); startListRefresh(); }
     else errEl.textContent = '► ' + (data.error||'HATA').toUpperCase();
   } catch { errEl.textContent = '► SUNUCU HATASI'; }
 }
@@ -259,7 +283,7 @@ async function confirmDelete() {
     const data = await del(url, { deletePassword: pass });
     if (data.success) {
       closeDeleteModal();
-      if (deleteTarget.type==='topic') { showList(); loadTopics(); }
+      if (deleteTarget.type==='topic') { showList(); loadTopics(); startListRefresh(); }
       else loadComments(currentTopicId);
     } else {
       errEl.textContent = '► ' + (data.error||'BAŞARISIZ').toUpperCase();
@@ -267,16 +291,27 @@ async function confirmDelete() {
   } catch { errEl.textContent = '► SUNUCU HATASI'; }
 }
 
-// ─── POLLING ─────────────────────────────────────────────
+// ─── POLLING (yorum güncelleme) ──────────────────────────
 function startPolling(topicId) {
   stopPolling();
-  pollInterval = setInterval(() => { if (currentTopicId===topicId) loadComments(topicId); }, 5000);
+  pollInterval = setInterval(() => { if (currentTopicId===topicId) loadComments(topicId); }, 8000);
 }
-function stopPolling() { if (pollInterval) { clearInterval(pollInterval); pollInterval = null; } }
+function stopPolling() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+}
 
-setInterval(() => {
-  if (document.getElementById('view-list').style.display !== 'none') loadTopics();
-}, 10000);
+// ─── LIST REFRESH (liste görünümündeyken) ────────────────
+function startListRefresh() {
+  stopListRefresh();
+  listRefresh = setInterval(() => {
+    if (document.getElementById('view-list').style.display !== 'none') {
+      loadTopics();
+    }
+  }, 30000); // 30 saniyede bir — çok sık değil
+}
+function stopListRefresh() {
+  if (listRefresh) { clearInterval(listRefresh); listRefresh = null; }
+}
 
 // ─── BBCode ───────────────────────────────────────────────
 function parseBBCode(text) {
@@ -293,7 +328,6 @@ function parseBBCode(text) {
   h = h.replace(/\[img\]([\s\S]*?)\[\/img\]/gi,          '<img src="$1" class="bb-img" alt="Görsel" onerror="this.style.display=\'none\'">');
   h = h.replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi,      '<div class="bb-quote">$1</div>');
   h = h.replace(/\[code\]([\s\S]*?)\[\/code\]/gi,        '<code class="bb-code">$1</code>');
-  // Video embed
   h = h.replace(/\[video\]([\s\S]*?)\[\/video\]/gi, (_, url) => {
     const embedUrl = toEmbedUrl(url.trim());
     if (!embedUrl) return `<a href="${url}" class="bb-link" target="_blank">${url}</a>`;
@@ -303,10 +337,8 @@ function parseBBCode(text) {
 }
 
 function toEmbedUrl(url) {
-  // YouTube
   let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (m) return `https://www.youtube.com/embed/${m[1]}`;
-  // Vimeo
   m = url.match(/vimeo\.com\/(\d+)/);
   if (m) return `https://player.vimeo.com/video/${m[1]}`;
   return null;
@@ -344,7 +376,7 @@ function formatDate(ts) {
   return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// ─── HTTP YARDIMCILAR ─────────────────────────────────────
+// ─── HTTP ─────────────────────────────────────────────────
 async function post(url, body) {
   const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   return r.json();

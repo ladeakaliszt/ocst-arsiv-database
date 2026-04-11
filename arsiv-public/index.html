@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OCST Adli Arşiv</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<!-- ═══════════════════════ GİRİŞ EKRANI ═══════════════════════ -->
+<!-- GİRİŞ EKRANI -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-header">
@@ -35,10 +35,9 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ ANA SİSTEM ═══════════════════════ -->
+<!-- ANA SİSTEM -->
 <div id="main-system" style="display:none">
 
-  <!-- TOP BAR -->
   <div id="topbar">
     <div id="topbar-left">
       <span class="topbar-title">OCST ADLİ ARŞİV</span>
@@ -53,7 +52,6 @@
     </div>
   </div>
 
-  <!-- STATUS BAR -->
   <div id="statusbar">
     <span class="status-item blink-slow">● SİSTEM AKTİF</span>
     <span class="status-sep">│</span>
@@ -68,7 +66,6 @@
 
   <div id="content-wrapper">
 
-    <!-- SOL MENÜ -->
     <div id="sidebar">
       <div class="sidebar-header">[ MENÜ ]</div>
       <nav id="menu-nav">
@@ -91,16 +88,14 @@
       </div>
     </div>
 
-    <!-- ANA PANEL -->
     <div id="main-panel">
 
-      <!-- TOPIC LIST VIEW -->
+      <!-- TOPIC LIST -->
       <div id="view-list">
         <div class="panel-header">
           <span id="list-title">KAYITLAR</span>
           <button class="new-topic-btn" onclick="showNewTopicForm()">[ + KONU AÇ ]</button>
         </div>
-        <!-- ARAMA -->
         <div class="search-bar">
           <span class="search-label">► ARA:</span>
           <input type="text" id="search-input" class="search-input" placeholder="Konu başlığında ara..." oninput="filterTopics()" spellcheck="false">
@@ -118,7 +113,7 @@
         </div>
       </div>
 
-      <!-- NEW TOPIC FORM -->
+      <!-- NEW TOPIC -->
       <div id="view-new-topic" style="display:none">
         <div class="panel-header">
           <span>YENİ KONU AÇ</span>
@@ -129,7 +124,6 @@
             <label class="form-label">KONU BAŞLIĞI <span class="required">*</span></label>
             <input type="text" id="new-title" class="form-input" maxlength="200" placeholder="Başlık giriniz..." spellcheck="false">
           </div>
-          <!-- ETİKET -->
           <div class="form-field">
             <label class="form-label">ETİKET</label>
             <div class="tag-selector">
@@ -146,21 +140,21 @@
           <div class="form-field">
             <label class="form-label">KONU İÇERİĞİ <span class="required">*</span></label>
             <div class="bbcode-toolbar">
-              <button type="button" class="bb-btn" onclick="bbInsert('[b]','[/b]')" title="Kalın"><b>B</b></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[i]','[/i]')" title="İtalik"><i>I</i></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[u]','[/u]')" title="Altçizgi"><u>U</u></button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[s]','[/s]')" title="Üstü çizili"><s>S</s></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[b]','[/b]')"><b>B</b></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[i]','[/i]')"><i>I</i></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[u]','[/u]')"><u>U</u></button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[s]','[/s]')"><s>S</s></button>
               <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbPromptURL()" title="Link ekle">URL</button>
-              <button type="button" class="bb-btn" onclick="bbPromptIMG()" title="Görsel ekle">IMG</button>
-              <button type="button" class="bb-btn" onclick="bbPromptVIDEO()" title="Video ekle">VID</button>
+              <button type="button" class="bb-btn" onclick="bbPromptURL()">URL</button>
+              <button type="button" class="bb-btn" onclick="bbPromptIMG()">IMG</button>
+              <button type="button" class="bb-btn" onclick="bbPromptVIDEO()">VID</button>
               <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbInsert('[quote]','[/quote]')" title="Alıntı">»Q</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[code]','[/code]')" title="Kod">{ }</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[quote]','[/quote]')">»Q</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[code]','[/code]')">{ }</button>
               <span class="bb-sep">│</span>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=red]','[/color]')" title="Kırmızı" style="color:#ff4444">■</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=yellow]','[/color]')" title="Sarı" style="color:#ffcc00">■</button>
-              <button type="button" class="bb-btn" onclick="bbInsert('[color=lime]','[/color]')" title="Yeşil" style="color:#00ff88">■</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=red]','[/color]')" style="color:#ff4444">■</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=yellow]','[/color]')" style="color:#ffcc00">■</button>
+              <button type="button" class="bb-btn" onclick="bbInsert('[color=lime]','[/color]')" style="color:#00ff88">■</button>
             </div>
             <textarea id="new-content" class="form-textarea" placeholder="İçerik giriniz... BBCode desteklenmektedir." spellcheck="false"></textarea>
           </div>
@@ -172,7 +166,7 @@
         </div>
       </div>
 
-      <!-- TOPIC DETAIL VIEW -->
+      <!-- TOPIC DETAIL -->
       <div id="view-topic" style="display:none">
         <div class="panel-header">
           <span id="detail-menu-label">KAYITLAR</span>
@@ -182,8 +176,6 @@
           </div>
         </div>
         <div id="topic-detail-content"></div>
-
-        <!-- YORUMLAR -->
         <div class="comments-section">
           <div class="comments-header">[ YORUMLAR ]</div>
           <div id="comments-list"></div>
@@ -205,15 +197,15 @@
         </div>
       </div>
 
-    </div><!-- /main-panel -->
-  </div><!-- /content-wrapper -->
+    </div>
+  </div>
 
   <div id="footer-bar">
     <span>OCST ADLİ ARŞİV SİSTEMİ v3.0 © 2020 OCST BİLGİ SİSTEMLERİ</span>
     <span>TÜM ERİŞİMLER KAYIT ALTINDADIR</span>
   </div>
 
-</div><!-- /main-system -->
+</div>
 
 <!-- DELETE MODAL -->
 <div id="delete-modal" style="display:none">
@@ -231,6 +223,6 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

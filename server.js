@@ -26,15 +26,38 @@ function readJSON(f)    { try { return JSON.parse(fs.readFileSync(f,'utf8')); } 
 function writeJSON(f,d) { fs.writeFileSync(f, JSON.stringify(d,null,2),'utf8'); }
 function genId()        { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
+// ─── AKTİF PERSONEL (bellek içi) ──────────────────────
+// { username -> { username, loginAt, lastSeen, sessionId } }
+const activePersonnel = new Map();
+
+function broadcastPersonnel() {
+  const list = Array.from(activePersonnel.values());
+  broadcast({ type: 'personnel_update', personnel: list });
+}
+
+// 30 dakikada bir eski kayıtları temizle
+setInterval(() => {
+  const cutoff = Date.now() - 30 * 60 * 1000;
+  for (const [k, v] of activePersonnel.entries()) {
+    if (v.lastSeen < cutoff) activePersonnel.delete(k);
+  }
+  broadcastPersonnel();
+}, 5 * 60 * 1000);
+
 // ─── WEBSOCKET ────────────────────────────────────────
 function broadcast(data) {
   const msg = JSON.stringify(data);
   wss.clients.forEach(c => { if (c.readyState === 1) c.send(msg); });
 }
 
-wss.on('connection', ws => {
+wss.on('connection', (ws, req) => {
+  // İlk bağlantıda son 50 çağrıyı gönder
   const calls = readJSON(CALLS_FILE).slice(-50).reverse();
   ws.send(JSON.stringify({ type: 'init_calls', calls }));
+
+  // Aktif personeli gönder
+  ws.send(JSON.stringify({ type: 'personnel_update', personnel: Array.from(activePersonnel.values()) }));
+
   ws.on('error', () => {});
 });
 
@@ -53,7 +76,6 @@ app.use(session({
   cookie: { maxAge: 1000*60*60*8 }
 }));
 
-// CORS — mobil siteden gelen istekler için
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
@@ -81,36 +103,67 @@ app.post('/api/login', (req, res) => {
   if (password !== SITE_PASSWORD)   return res.json({ success:false, message:'Hatalı şifre.' });
   req.session.loggedIn = true;
   req.session.username = username.trim();
+  req.session.sessionId = genId();
+
+  // Aktif personele ekle
+  activePersonnel.set(username.trim(), {
+    username: username.trim(),
+    loginAt: Date.now(),
+    lastSeen: Date.now(),
+    sessionId: req.session.sessionId
+  });
+  broadcastPersonnel();
+
   res.json({ success:true, username: username.trim() });
 });
 
-app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success:true }); });
+app.post('/api/logout', (req, res) => {
+  if (req.session && req.session.username) {
+    activePersonnel.delete(req.session.username);
+    broadcastPersonnel();
+  }
+  req.session.destroy();
+  res.json({ success:true });
+});
 
 app.get('/api/me', (req, res) => {
-  if (req.session && req.session.loggedIn)
+  if (req.session && req.session.loggedIn) {
+    // lastSeen güncelle
+    const p = activePersonnel.get(req.session.username);
+    if (p) { p.lastSeen = Date.now(); activePersonnel.set(req.session.username, p); }
     return res.json({ loggedIn:true, username:req.session.username });
+  }
   res.json({ loggedIn:false });
 });
 
-// ─── ÇAĞRILAR ─────────────────────────────────────────
+// Heartbeat — masaüstü her 60sn'de bir çağırır
+app.post('/api/heartbeat', (req, res) => {
+  if (req.session && req.session.loggedIn) {
+    const p = activePersonnel.get(req.session.username);
+    if (p) { p.lastSeen = Date.now(); activePersonnel.set(req.session.username, p); }
+  }
+  res.json({ ok: true });
+});
 
-// Tüm çağrıları getir
+// ─── PERSONEL ─────────────────────────────────────────
+app.get('/api/personnel', requireAuth, (req, res) => {
+  res.json(Array.from(activePersonnel.values()));
+});
+
+// ─── ÇAĞRILAR ─────────────────────────────────────────
 app.get('/api/calls', requireAuth, (req, res) => {
   const calls = readJSON(CALLS_FILE).slice(-100).reverse();
   res.json(calls);
 });
 
-// Tekil çağrı
 app.get('/api/call/:id', requireAuth, (req, res) => {
   const call = readJSON(CALLS_FILE).find(c => c.id === req.params.id);
   if (!call) return res.status(404).json({ error: 'Çağrı bulunamadı.' });
   res.json(call);
 });
 
-// Yeni çağrı (mobil + desktop)
 app.post('/api/calls', (req, res) => {
-  // Mobil API key veya oturum kontrolü
-  const isMobile = req.headers['x-api-key'] === MOBILE_KEY;
+  const isMobile  = req.headers['x-api-key'] === MOBILE_KEY;
   const isDesktop = req.session && req.session.loggedIn;
   if (!isMobile && !isDesktop) return res.status(401).json({ error: 'Yetkisiz.' });
 
@@ -120,29 +173,28 @@ app.post('/api/calls', (req, res) => {
 
   const calls = readJSON(CALLS_FILE);
   const newCall = {
-    id:        genId(),
-    type,                           // 'panic' | 'normal'
-    title:     title   || (type === 'panic' ? '🚨 PANİK BUTONU' : 'Çağrı'),
-    detail:    detail  || '',
-    location:  location || 'Konum belirtilmedi',
-    lat:       lat  || null,
-    lng:       lng  || null,
-    author:    author,
-    status:    'bekliyor',          // bekliyor | yanitlandi | kapatildi
-    createdAt: Date.now()
+    id:         genId(),
+    type,
+    title:      title   || (type === 'panic' ? '🚨 PANİK BUTONU' : 'Çağrı'),
+    detail:     detail  || '',
+    location:   location || 'Konum belirtilmedi',
+    lat:        lat  || null,
+    lng:        lng  || null,
+    author:     author,
+    assignedTo: null,
+    status:     'bekliyor',
+    notes:      [],
+    createdAt:  Date.now()
   };
   calls.push(newCall);
   writeJSON(CALLS_FILE, calls);
-
-  // Tüm bağlı client'lara anlık bildir
   broadcast({ type: 'new_call', call: newCall });
-
   res.json({ success:true, id: newCall.id });
 });
 
 // Çağrı durumu güncelle
 app.post('/api/call/:id/status', requireAuth, (req, res) => {
-  const { status } = req.body;
+  const { status, note } = req.body;
   const valid = ['bekliyor','yanitlandi','kapatildi'];
   if (!valid.includes(status)) return res.status(400).json({ error: 'Geçersiz durum.' });
   const calls = readJSON(CALLS_FILE);
@@ -150,6 +202,29 @@ app.post('/api/call/:id/status', requireAuth, (req, res) => {
   if (idx === -1) return res.status(404).json({ error: 'Çağrı bulunamadı.' });
   calls[idx].status = status;
   calls[idx].updatedAt = Date.now();
+  if (note && note.trim()) {
+    if (!calls[idx].notes) calls[idx].notes = [];
+    calls[idx].notes.push({ text: note.trim(), by: req.session.username || 'Sistem', at: Date.now() });
+  }
+  writeJSON(CALLS_FILE, calls);
+  broadcast({ type: 'update_call', call: calls[idx] });
+  res.json({ success:true });
+});
+
+// Çağrıya personel ata
+app.post('/api/call/:id/assign', requireAuth, (req, res) => {
+  const { assignTo } = req.body;
+  const calls = readJSON(CALLS_FILE);
+  const idx = calls.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Çağrı bulunamadı.' });
+  calls[idx].assignedTo = assignTo || null;
+  calls[idx].updatedAt = Date.now();
+  if (!calls[idx].notes) calls[idx].notes = [];
+  const by = req.session.username || 'Sistem';
+  calls[idx].notes.push({
+    text: assignTo ? `${assignTo} çağrıya atandı.` : 'Atama kaldırıldı.',
+    by, at: Date.now()
+  });
   writeJSON(CALLS_FILE, calls);
   broadcast({ type: 'update_call', call: calls[idx] });
   res.json({ success:true });
@@ -233,7 +308,7 @@ app.delete('/api/comment/:id', requireAuth, (req, res) => {
 // ─── BAŞLAT ───────────────────────────────────────────
 server.listen(PORT, () => {
   console.log(`\n╔══════════════════════════════════════╗`);
-  console.log(`║   OCST BİLGİ SİSTEMLERİ v4.0         ║`);
+  console.log(`║   OCST BİLGİ SİSTEMLERİ v4.1         ║`);
   console.log(`║   http://localhost:${PORT}              ║`);
   console.log(`╚══════════════════════════════════════╝\n`);
 });
