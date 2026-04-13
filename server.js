@@ -107,9 +107,27 @@ setInterval(() => {
   broadcastPersonnel();
 }, 5 * 60 * 1000);
 
-// ─── MOBİL CİHAZ YÖNETİMİ (bellek içi) ───────────────
+// ─── MOBİL CİHAZ YÖNETİMİ (bellek içi + kalıcı) ──────
 // deviceId → { deviceId, username, firstSeen, lastSeen, lat, lng, locationActive }
 const mobileDevices = new Map();
+
+// Başlangıçta dosyadan yükle (sunucu yeniden başladığında cihazlar kaybolmasın)
+(function loadDevices() {
+  try {
+    const saved = readJSON(DEVICES_FILE);
+    if (Array.isArray(saved)) {
+      saved.forEach(d => {
+        // Konum bilgisini sıfırla — sunucu kapanmışsa konum artık geçersiz
+        mobileDevices.set(d.deviceId, { ...d, locationActive: false, lat: null, lng: null, locUpdatedAt: null });
+      });
+    }
+  } catch {}
+})();
+
+// Her 60sn'de cihaz listesini dosyaya kaydet
+setInterval(() => {
+  try { writeJSON(DEVICES_FILE, Array.from(mobileDevices.values())); } catch {}
+}, 60000);
 
 function broadcastMobileDevices() {
   const list = Array.from(mobileDevices.values()).map(d => ({

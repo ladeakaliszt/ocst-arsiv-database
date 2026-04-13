@@ -868,17 +868,139 @@ function initMapApp() {
     renderMapBlips();
     return;
   }
-  const el = document.getElementById('map-container');
-  if (!el) return;
+  const container = document.getElementById('map-container');
+  if (!container) return;
+
+  // Arama çubuğunu pencere gövdesine üstten ekle
+  const winBody = container.parentElement;
+  winBody.style.cssText += 'display:flex;flex-direction:column;overflow:hidden;';
+
+  const searchBar = document.createElement('div');
+  searchBar.id = 'map-search-bar';
+  searchBar.style.cssText = [
+    'display:flex;align-items:center;gap:6px;',
+    'background:#080d14;border-bottom:1px solid #1a3a5a;',
+    'padding:6px 10px;flex-shrink:0;position:relative;z-index:500;'
+  ].join('');
+  searchBar.innerHTML = `
+    <span style="color:#4a9eff;font-size:13px;flex-shrink:0;">🔍</span>
+    <input id="map-search-input" type="text" placeholder="Konum ara..." autocomplete="off" spellcheck="false"
+      style="flex:1;background:rgba(0,20,50,.8);border:1px solid #1a3a5a;color:#c8d8e8;
+             font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 10px;
+             outline:none;letter-spacing:.5px;"
+      oninput="onMapSearchInput()"
+      onkeydown="if(event.key==='Enter')doMapSearch()"
+      onfocus="this.style.borderColor='#4a9eff'"
+      onblur="this.style.borderColor='#1a3a5a'">
+    <button onclick="doMapSearch()"
+      style="background:rgba(26,58,110,.5);border:1px solid #2a5a9a;color:#4a9eff;
+             font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 12px;
+             cursor:pointer;letter-spacing:1px;flex-shrink:0;">ARA</button>
+    <div id="map-search-results"
+      style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+             background:#0d1420;border:1px solid #1a3a5a;border-top:none;
+             max-height:220px;overflow-y:auto;"></div>
+  `;
+  winBody.insertBefore(searchBar, container);
+  container.style.flex = '1';
 
   mapLeaflet = L.map('map-container', { zoomControl: true }).setView([39.9, 32.8], 7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap',
-    maxZoom: 19
+    attribution: '© OpenStreetMap', maxZoom: 19
   }).addTo(mapLeaflet);
+
+  // Arama sonuçlarını haritaya tıklanınca kapat
+  mapLeaflet.on('click', () => closeMapSearchResults());
 
   renderMapBlips();
 }
+
+// ─── HARİTA ARAMA ─────────────────────────────────────
+let _mapSearchTimer  = null;
+let _mapSearchMarker = null;
+
+function onMapSearchInput() {
+  clearTimeout(_mapSearchTimer);
+  const val = document.getElementById('map-search-input')?.value.trim();
+  if (!val) { closeMapSearchResults(); return; }
+  _mapSearchTimer = setTimeout(doMapSearch, 500);
+}
+
+async function doMapSearch() {
+  const input = document.getElementById('map-search-input');
+  const resEl = document.getElementById('map-search-results');
+  if (!input || !resEl) return;
+  const q = input.value.trim();
+  if (!q) return;
+
+  resEl.style.display = 'block';
+  resEl.innerHTML = `<div style="padding:8px 12px;font-size:11px;color:#6a8aaa;
+    font-family:'Share Tech Mono',monospace;letter-spacing:1px;">⏳ Aranıyor...</div>`;
+
+  try {
+    const url  = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&accept-language=tr`;
+    const data = await fetch(url, { headers: { 'Accept-Language':'tr', 'User-Agent':'OCST-Desktop/4.1' } }).then(r => r.json());
+
+    if (!data.length) {
+      resEl.innerHTML = `<div style="padding:8px 12px;font-size:11px;color:#6a8aaa;
+        font-family:'Share Tech Mono',monospace;">► Sonuç bulunamadı.</div>`;
+      return;
+    }
+
+    resEl.innerHTML = data.map(item => {
+      const short = item.display_name.split(',').slice(0, 3).join(', ');
+      const coords = `${parseFloat(item.lat).toFixed(5)}, ${parseFloat(item.lon).toFixed(5)}`;
+      return `<div
+        onclick="selectMapResult(${item.lat},${item.lon},${JSON.stringify(item.display_name)})"
+        style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #0f1f30;
+               font-family:'Share Tech Mono',monospace;transition:background .1s;"
+        onmouseover="this.style.background='rgba(74,158,255,.12)'"
+        onmouseout="this.style.background='transparent'">
+        <div style="font-size:12px;color:#c8d8e8;">${escH(short)}</div>
+        <div style="font-size:10px;color:#4a6a8a;margin-top:2px;">${coords}</div>
+      </div>`;
+    }).join('');
+  } catch {
+    resEl.innerHTML = `<div style="padding:8px 12px;font-size:11px;color:#ff4444;
+      font-family:'Share Tech Mono',monospace;">► Bağlantı hatası.</div>`;
+  }
+}
+
+function selectMapResult(lat, lng, displayName) {
+  closeMapSearchResults();
+  if (!mapLeaflet) return;
+
+  mapLeaflet.setView([lat, lng], 15);
+
+  if (_mapSearchMarker) { mapLeaflet.removeLayer(_mapSearchMarker); }
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;background:#ffaa00;border:3px solid #fff;
+      border-radius:50%;box-shadow:0 0 0 3px rgba(255,170,0,.4),0 0 12px rgba(255,170,0,.8);"></div>`,
+    iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -10]
+  });
+
+  _mapSearchMarker = L.marker([lat, lng], { icon })
+    .addTo(mapLeaflet)
+    .bindTooltip(`<div style="font-family:'Share Tech Mono',monospace;font-size:11px;max-width:220px;">${escH(displayName.split(',').slice(0,3).join(', '))}</div>`,
+      { permanent: false, direction: 'top', className: 'map-tt' })
+    .openTooltip();
+
+  const input = document.getElementById('map-search-input');
+  if (input) input.value = displayName.split(',').slice(0, 3).join(', ');
+}
+
+function closeMapSearchResults() {
+  const el = document.getElementById('map-search-results');
+  if (el) el.style.display = 'none';
+}
+
+// Arama kutusu dışına tıklanınca kapat
+document.addEventListener('click', e => {
+  const bar = document.getElementById('map-search-bar');
+  if (bar && !bar.contains(e.target)) closeMapSearchResults();
+});
 
 function renderMapBlips() {
   if (!mapLeaflet) return;
