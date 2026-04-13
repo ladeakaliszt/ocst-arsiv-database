@@ -16,11 +16,13 @@ const DATA_DIR      = process.env.DATA_DIR || path.join(__dirname, 'data');
 const TOPICS_FILE   = path.join(DATA_DIR, 'topics.json');
 const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
 const CALLS_FILE    = path.join(DATA_DIR, 'calls.json');
+const DEVICES_FILE  = path.join(DATA_DIR, 'mobile_devices.json');
+const BANNED_FILE   = path.join(DATA_DIR, 'banned_devices.json');
 
-if (!fs.existsSync(DATA_DIR))       fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(TOPICS_FILE))    fs.writeFileSync(TOPICS_FILE,   '[]');
-if (!fs.existsSync(COMMENTS_FILE))  fs.writeFileSync(COMMENTS_FILE, '[]');
-if (!fs.existsSync(CALLS_FILE))     fs.writeFileSync(CALLS_FILE,    '[]');
+[DATA_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
+[TOPICS_FILE, COMMENTS_FILE, CALLS_FILE, DEVICES_FILE, BANNED_FILE].forEach(f => {
+  if (!fs.existsSync(f)) fs.writeFileSync(f, '[]');
+});
 
 // ─── YARDIMCILAR ──────────────────────────────────────
 function readJSON(f)    { try { return JSON.parse(fs.readFileSync(f,'utf8')); } catch { return []; } }
@@ -28,12 +30,16 @@ function writeJSON(f,d) { fs.writeFileSync(f, JSON.stringify(d,null,2),'utf8'); 
 function genId()        { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 // ─── BİLDİRİM SABİTLERİ ───────────────────────────────
-// Buraya kendi bilgilerini gir:
 const DISCORD_WEBHOOK  = 'https://discord.com/api/webhooks/1466651197363454072/LbukP7UrHVqusJLzx7f7s1PMatzpB2L20h5LNT41NeUtLCRe9OMNc9rPlhh9_rrO_34S';
 const GMAIL_USER       = 'ladebut619@gmail.com';
-const GMAIL_PASSWORD   = 'uyeowgtypypdupqr'; // 16 haneli uygulama şifresi
-const NOTIFY_EMAILS    = [                                 // Bildirim gidecek adresler
- 'ladebut619@gmail.com',
+const GMAIL_PASSWORD   = 'uyeowgtypypdupqr';
+const NOTIFY_EMAILS    = ['ladebut619@gmail.com'];
+
+// ─── SABİT PERSONEL LİSTESİ ───────────────────────────
+// İleride buraya yeni kişiler eklenebilir
+const PERSONNEL_DB = [
+  { username: 'lade', password: 'Mustafa-0808', role: 'admin' },
+  // { username: 'yeni', password: 'sifre', role: 'operator' },
 ];
 
 // ─── NODEMAILER ───────────────────────────────────────
@@ -66,57 +72,31 @@ async function sendDiscordNotify(call) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(payload)
     });
-  } catch (e) {
-    console.error('Discord bildirim hatası:', e.message);
-  }
+  } catch (e) { console.error('Discord bildirim hatası:', e.message); }
 }
 
 async function sendEmailNotify(call) {
   try {
     const isPanic = call.type === 'panic';
-    const subject = isPanic
-      ? '🚨 [OCST] PANİK BUTONU BASILDI'
-      : `📞 [OCST] Yeni Çağrı: ${call.title}`;
-
-    const html = `
-      <div style="font-family:monospace;background:#0d1117;color:#c8d8e8;padding:24px;border-radius:4px;">
-        <div style="font-size:20px;color:${isPanic?'#ff4444':'#4a9eff'};margin-bottom:16px;">
-          ${isPanic ? '🚨 PANİK BUTONU BASILDI' : '📞 YENİ ÇAĞRI'}
-        </div>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#6a8aaa;width:100px;">PERSONEL</td><td style="padding:6px 0;">${call.author}</td></tr>
-          <tr><td style="padding:6px 0;color:#6a8aaa;">BAŞLIK</td><td style="padding:6px 0;">${call.title}</td></tr>
-          <tr><td style="padding:6px 0;color:#6a8aaa;">KONUM</td><td style="padding:6px 0;">${call.location || 'Belirtilmedi'}</td></tr>
-          ${call.detail ? `<tr><td style="padding:6px 0;color:#6a8aaa;">DETAY</td><td style="padding:6px 0;">${call.detail}</td></tr>` : ''}
-          <tr><td style="padding:6px 0;color:#6a8aaa;">ZAMAN</td><td style="padding:6px 0;">${new Date(call.createdAt).toLocaleString('tr-TR')}</td></tr>
-        </table>
-        <div style="margin-top:16px;font-size:11px;color:#3a5a7a;">OCST Pager System — otomatik bildirim</div>
-      </div>`;
-
-    await mailer.sendMail({
-      from:    `"OCST Pager" <${GMAIL_USER}>`,
-      to:      NOTIFY_EMAILS.join(', '),
-      subject,
-      html
-    });
-  } catch (e) {
-    console.error('Gmail bildirim hatası:', e.message);
-  }
+    const subject = isPanic ? '🚨 [OCST] PANİK BUTONU BASILDI' : `📞 [OCST] Yeni Çağrı: ${call.title}`;
+    const html = `<div style="font-family:monospace;background:#0d1117;color:#c8d8e8;padding:24px;">
+      <div style="font-size:20px;color:${isPanic?'#ff4444':'#4a9eff'};margin-bottom:16px;">${isPanic ? '🚨 PANİK' : '📞 YENİ ÇAĞRI'}</div>
+      <table><tr><td style="color:#6a8aaa;width:100px;">PERSONEL</td><td>${call.author}</td></tr>
+      <tr><td style="color:#6a8aaa;">BAŞLIK</td><td>${call.title}</td></tr>
+      <tr><td style="color:#6a8aaa;">KONUM</td><td>${call.location || 'Belirtilmedi'}</td></tr></table></div>`;
+    await mailer.sendMail({ from: `"OCST Pager" <${GMAIL_USER}>`, to: NOTIFY_EMAILS.join(', '), subject, html });
+  } catch (e) { console.error('Gmail bildirim hatası:', e.message); }
 }
 
 async function sendNotifications(call) {
-  await Promise.allSettled([
-    sendDiscordNotify(call),
-    sendEmailNotify(call)
-  ]);
+  await Promise.allSettled([sendDiscordNotify(call), sendEmailNotify(call)]);
 }
 
 // ─── AKTİF PERSONEL (bellek içi) ──────────────────────
 const activePersonnel = new Map();
 
 function broadcastPersonnel() {
-  const list = Array.from(activePersonnel.values());
-  broadcast({ type: 'personnel_update', personnel: list });
+  broadcast({ type: 'personnel_update', personnel: Array.from(activePersonnel.values()) });
 }
 
 setInterval(() => {
@@ -126,6 +106,20 @@ setInterval(() => {
   }
   broadcastPersonnel();
 }, 5 * 60 * 1000);
+
+// ─── MOBİL CİHAZ YÖNETİMİ (bellek içi) ───────────────
+// deviceId → { deviceId, username, firstSeen, lastSeen, lat, lng, locationActive }
+const mobileDevices = new Map();
+
+function broadcastMobileDevices() {
+  const list = Array.from(mobileDevices.values()).map(d => ({
+    ...d,
+    // lat/lng sadece locationActive=true ise gönder (gizlilik)
+    lat: d.locationActive ? d.lat : null,
+    lng: d.locationActive ? d.lng : null,
+  }));
+  broadcast({ type: 'mobile_devices_update', devices: list });
+}
 
 // ─── WEBSOCKET ────────────────────────────────────────
 function broadcast(data) {
@@ -137,11 +131,19 @@ wss.on('connection', (ws) => {
   const calls = readJSON(CALLS_FILE).slice(-50).reverse();
   ws.send(JSON.stringify({ type: 'init_calls', calls }));
   ws.send(JSON.stringify({ type: 'personnel_update', personnel: Array.from(activePersonnel.values()) }));
+  ws.send(JSON.stringify({
+    type: 'mobile_devices_update',
+    devices: Array.from(mobileDevices.values()).map(d => ({
+      ...d,
+      lat: d.locationActive ? d.lat : null,
+      lng: d.locationActive ? d.lng : null,
+    }))
+  }));
   ws.on('error', () => {});
 });
 
 // ─── SABİTLER ─────────────────────────────────────────
-const SITE_PASSWORD   = 'OCSTARŞİV2020';
+const SITE_PASSWORD   = 'OCSTARŞİV2020';   // Arşiv uygulaması şifresi (legacy)
 const DELETE_PASSWORD = '080808';
 const MOBILE_KEY      = 'OCSTMLBL2020';
 const MENUS = ['kayitlar','kisiler','ek-dosyalar','gorseller'];
@@ -176,21 +178,43 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'Yetkisiz.' });
 }
 
+function requireDesktopAuth(req, res, next) {
+  if (req.session && req.session.loggedIn) return next();
+  res.status(401).json({ error: 'Yetkisiz.' });
+}
+
+// ─── DESKTOP GİRİŞ — SABİT PERSONEL ──────────────────
 app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !username.trim()) return res.json({ success:false, message:'Kullanıcı adı boş.' });
+
+  const person = PERSONNEL_DB.find(p => p.username === username.trim() && p.password === password);
+  if (!person) return res.json({ success:false, message:'Kullanıcı adı veya şifre hatalı.' });
+
+  req.session.loggedIn  = true;
+  req.session.username  = person.username;
+  req.session.role      = person.role;
+  req.session.sessionId = genId();
+
+  activePersonnel.set(person.username, {
+    username:  person.username,
+    loginAt:   Date.now(),
+    lastSeen:  Date.now(),
+    sessionId: req.session.sessionId,
+    role:      person.role,
+  });
+  broadcastPersonnel();
+  res.json({ success:true, username: person.username, role: person.role });
+});
+
+// Arşiv için legacy login (tek şifre) — arşiv app.js kullanır
+app.post('/api/arsiv-login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !username.trim()) return res.json({ success:false, message:'Kullanıcı adı boş.' });
   if (password !== SITE_PASSWORD)   return res.json({ success:false, message:'Hatalı şifre.' });
   req.session.loggedIn  = true;
   req.session.username  = username.trim();
   req.session.sessionId = genId();
-
-  activePersonnel.set(username.trim(), {
-    username:  username.trim(),
-    loginAt:   Date.now(),
-    lastSeen:  Date.now(),
-    sessionId: req.session.sessionId
-  });
-  broadcastPersonnel();
   res.json({ success:true, username: username.trim() });
 });
 
@@ -207,7 +231,7 @@ app.get('/api/me', (req, res) => {
   if (req.session && req.session.loggedIn) {
     const p = activePersonnel.get(req.session.username);
     if (p) { p.lastSeen = Date.now(); activePersonnel.set(req.session.username, p); }
-    return res.json({ loggedIn:true, username:req.session.username });
+    return res.json({ loggedIn:true, username:req.session.username, role:req.session.role });
   }
   res.json({ loggedIn:false });
 });
@@ -223,6 +247,108 @@ app.post('/api/heartbeat', (req, res) => {
 // ─── PERSONEL ─────────────────────────────────────────
 app.get('/api/personnel', requireAuth, (req, res) => {
   res.json(Array.from(activePersonnel.values()));
+});
+
+// ─── MOBİL CİHAZ KAYIT / KONUM ────────────────────────
+
+// Mobil uygulama açıldığında cihazı kaydet/güncelle
+app.post('/api/mobile/register', (req, res) => {
+  if (req.headers['x-api-key'] !== MOBILE_KEY) return res.status(401).json({ error:'Yetkisiz.' });
+  const { deviceId, username } = req.body;
+  if (!deviceId || !username) return res.status(400).json({ error:'Eksik alan.' });
+
+  const banned = readJSON(BANNED_FILE);
+  if (banned.includes(deviceId)) return res.status(403).json({ error:'Bu cihaz engellenmiş.', banned:true });
+
+  const existing = mobileDevices.get(deviceId) || {};
+  const device = {
+    deviceId,
+    username,
+    firstSeen:      existing.firstSeen || Date.now(),
+    lastSeen:       Date.now(),
+    locationActive: existing.locationActive || false,
+    lat:            existing.lat || null,
+    lng:            existing.lng || null,
+    locUpdatedAt:   existing.locUpdatedAt || null,
+  };
+  mobileDevices.set(deviceId, device);
+  broadcastMobileDevices();
+  res.json({ success:true });
+});
+
+// Konum güncelle (konum tuşu açıksa 30sn'de bir çağrılır)
+app.post('/api/mobile/location', (req, res) => {
+  if (req.headers['x-api-key'] !== MOBILE_KEY) return res.status(401).json({ error:'Yetkisiz.' });
+  const { deviceId, lat, lng, active } = req.body;
+  if (!deviceId) return res.status(400).json({ error:'deviceId eksik.' });
+
+  const banned = readJSON(BANNED_FILE);
+  if (banned.includes(deviceId)) return res.status(403).json({ error:'Engellenmiş.', banned:true });
+
+  const device = mobileDevices.get(deviceId);
+  if (!device) return res.status(404).json({ error:'Cihaz kayıtlı değil.' });
+
+  device.locationActive = !!active;
+  device.lastSeen       = Date.now();
+  if (active && lat !== undefined && lng !== undefined) {
+    device.lat          = lat;
+    device.lng          = lng;
+    device.locUpdatedAt = Date.now();
+  } else if (!active) {
+    // Konum kapatıldı — koordinatları sil
+    device.lat          = null;
+    device.lng          = null;
+    device.locUpdatedAt = null;
+  }
+  mobileDevices.set(deviceId, device);
+  broadcastMobileDevices();
+  res.json({ success:true });
+});
+
+// Tüm mobil cihazları listele (sadece desktop auth)
+app.get('/api/mobile/devices', requireDesktopAuth, (req, res) => {
+  const devices = Array.from(mobileDevices.values()).map(d => ({
+    ...d,
+    lat: d.locationActive ? d.lat : null,
+    lng: d.locationActive ? d.lng : null,
+  }));
+  res.json(devices);
+});
+
+// Cihazı sil (PC'den)
+app.delete('/api/mobile/device/:deviceId', requireDesktopAuth, (req, res) => {
+  const { deviceId } = req.params;
+  if (!mobileDevices.has(deviceId)) return res.status(404).json({ error:'Cihaz bulunamadı.' });
+  mobileDevices.delete(deviceId);
+  broadcastMobileDevices();
+  res.json({ success:true });
+});
+
+// Cihazı engelle (PC'den)
+app.post('/api/mobile/ban/:deviceId', requireDesktopAuth, (req, res) => {
+  const { deviceId } = req.params;
+  const banned = readJSON(BANNED_FILE);
+  if (!banned.includes(deviceId)) {
+    banned.push(deviceId);
+    writeJSON(BANNED_FILE, banned);
+  }
+  mobileDevices.delete(deviceId);
+  broadcastMobileDevices();
+  res.json({ success:true });
+});
+
+// Engeli kaldır
+app.post('/api/mobile/unban/:deviceId', requireDesktopAuth, (req, res) => {
+  const { deviceId } = req.params;
+  let banned = readJSON(BANNED_FILE);
+  banned = banned.filter(id => id !== deviceId);
+  writeJSON(BANNED_FILE, banned);
+  res.json({ success:true });
+});
+
+// Engelli cihaz listesi
+app.get('/api/mobile/banned', requireDesktopAuth, (req, res) => {
+  res.json(readJSON(BANNED_FILE));
 });
 
 // ─── ÇAĞRILAR ─────────────────────────────────────────
@@ -241,6 +367,12 @@ app.post('/api/calls', async (req, res) => {
   const isMobile  = req.headers['x-api-key'] === MOBILE_KEY;
   const isDesktop = req.session && req.session.loggedIn;
   if (!isMobile && !isDesktop) return res.status(401).json({ error: 'Yetkisiz.' });
+
+  // Engel kontrolü
+  if (isMobile && req.body.deviceId) {
+    const banned = readJSON(BANNED_FILE);
+    if (banned.includes(req.body.deviceId)) return res.status(403).json({ error:'Engellenmiş.', banned:true });
+  }
 
   const { type, title, detail, location, lat, lng, author } = req.body;
   if (!type)   return res.status(400).json({ error: 'Tür eksik.' });
@@ -264,14 +396,10 @@ app.post('/api/calls', async (req, res) => {
   calls.push(newCall);
   writeJSON(CALLS_FILE, calls);
   broadcast({ type: 'new_call', call: newCall });
-
-  // Bildirimleri arka planda gönder (yanıtı geciktirme)
   sendNotifications(newCall);
-
   res.json({ success:true, id: newCall.id });
 });
 
-// Çağrı durumu güncelle
 app.post('/api/call/:id/status', requireAuth, (req, res) => {
   const { status, note } = req.body;
   const valid = ['bekliyor','yanitlandi','kapatildi'];
@@ -290,7 +418,6 @@ app.post('/api/call/:id/status', requireAuth, (req, res) => {
   res.json({ success:true });
 });
 
-// Çağrıya personel ata
 app.post('/api/call/:id/assign', requireAuth, (req, res) => {
   const { assignTo } = req.body;
   const calls = readJSON(CALLS_FILE);
@@ -299,17 +426,12 @@ app.post('/api/call/:id/assign', requireAuth, (req, res) => {
   calls[idx].assignedTo = assignTo || null;
   calls[idx].updatedAt  = Date.now();
   if (!calls[idx].notes) calls[idx].notes = [];
-  const by = req.session.username || 'Sistem';
-  calls[idx].notes.push({
-    text: assignTo ? `${assignTo} çağrıya atandı.` : 'Atama kaldırıldı.',
-    by, at: Date.now()
-  });
+  calls[idx].notes.push({ text: assignTo ? `${assignTo} çağrıya atandı.` : 'Atama kaldırıldı.', by: req.session.username || 'Sistem', at: Date.now() });
   writeJSON(CALLS_FILE, calls);
   broadcast({ type: 'update_call', call: calls[idx] });
   res.json({ success:true });
 });
 
-// Çağrı sil
 app.delete('/api/call/:id', requireAuth, (req, res) => {
   if (req.body.deletePassword !== DELETE_PASSWORD)
     return res.status(403).json({ error: 'Şifre hatalı.' });
@@ -387,7 +509,10 @@ app.delete('/api/comment/:id', requireAuth, (req, res) => {
 // ─── BAŞLAT ───────────────────────────────────────────
 server.listen(PORT, () => {
   console.log(`\n╔══════════════════════════════════════╗`);
-  console.log(`║   OCST BİLGİ SİSTEMLERİ v4.2         ║`);
+  console.log(`║   OCST BİLGİ SİSTEMLERİ v4.3         ║`);
   console.log(`║   http://localhost:${PORT}              ║`);
   console.log(`╚══════════════════════════════════════╝\n`);
+  if (PERSONNEL_DB.length) {
+    console.log('Tanımlı personel:', PERSONNEL_DB.map(p=>p.username).join(', '));
+  }
 });

@@ -25,6 +25,11 @@ let mapMarker      = null;
 // Personel state
 let activePersonnel = [];
 
+// Mobil cihaz state
+let mobileDevices = [];
+let mapBlips = {};      // leaflet markers: deviceId → marker
+let mapLeaflet = null;  // Haritalar app leaflet instance
+
 // ══════════════════════════════════════════════════════
 // GİRİŞ
 // ══════════════════════════════════════════════════════
@@ -180,6 +185,11 @@ function handleWSMessage(msg) {
       activePersonnel = msg.personnel || [];
       renderPersonnel();
       renderCADPersonnel();
+      break;
+    case 'mobile_devices_update':
+      mobileDevices = msg.devices || [];
+      renderMobileDevices();
+      renderMapBlips();
       break;
   }
 }
@@ -638,6 +648,8 @@ const APP_MAP = {
   arsiv:    { winId:'win-arsiv',    label:'📁 Adli Arşiv' },
   cagri:    { winId:'win-cagri',    label:'📡 Çağrı Yönetim' },
   personel: { winId:'win-personel', label:'👥 Personel' },
+  mobil:    { winId:'win-mobil',    label:'📱 Mobil Cihazlar' },
+  harita:   { winId:'win-harita',   label:'🗺️ Haritalar' },
   iletisim: { winId:'win-iletisim', label:'🎙️ İletişim' },
   ayarlar:  { winId:'win-ayarlar',  label:'⚙️ Ayarlar' },
 };
@@ -645,6 +657,11 @@ const APP_MAP = {
 function openApp(appKey) {
   const app = APP_MAP[appKey]; if (!app) return;
   const win = document.getElementById(app.winId); if (!win) return;
+
+  // Harita açılınca leaflet başlat
+  if (appKey === 'harita') {
+    setTimeout(() => initMapApp(), 200);
+  }
 
   // Arşiv iframe — sadece ilk açılışta yükle, sonra postMessage ile kullanıcı gönder
   if (appKey === 'arsiv') {
@@ -793,6 +810,126 @@ function cadLog(label, text, cls) {
   div.textContent = `[${time}] ${label}: ${text}`;
   logEl.prepend(div);
   while (logEl.children.length > 40) logEl.lastChild.remove();
+}
+
+// ══════════════════════════════════════════════════════
+// MOBİL CİHAZLAR UYGULAMASI
+// ══════════════════════════════════════════════════════
+function renderMobileDevices() {
+  const el = document.getElementById('mobil-list');
+  if (!el) return;
+
+  if (!mobileDevices.length) {
+    el.innerHTML = '<div class="cad-empty">► Bağlı mobil cihaz yok.</div>';
+    return;
+  }
+
+  el.innerHTML = mobileDevices.map(d => {
+    const locIcon  = d.locationActive ? '<span style="color:#00cc44">● KONUM AÇIK</span>' : '<span style="color:#6a8aaa">○ KONUM KAPALI</span>';
+    const lastSeen = formatDateTime(d.lastSeen);
+    const locTime  = d.locUpdatedAt ? formatDateTime(d.locUpdatedAt) : '—';
+    return `<div class="mobil-row">
+      <div class="mobil-row-top">
+        <span class="mobil-username">📱 ${escH(d.username)}</span>
+        ${locIcon}
+      </div>
+      <div class="mobil-meta">ID: ${escH(d.deviceId)} · Son görülme: ${lastSeen}</div>
+      ${d.locationActive ? `<div class="mobil-meta">Konum güncellendi: ${locTime}</div>` : ''}
+      <div class="mobil-actions">
+        <button class="mobil-del-btn" onclick="deleteMobileDevice('${escH(d.deviceId)}')">[ SİL ]</button>
+        <button class="mobil-ban-btn" onclick="banMobileDevice('${escH(d.deviceId)}')">[ ENGELLE ]</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteMobileDevice(deviceId) {
+  if (!confirm(`"${deviceId}" cihazını silmek istiyor musunuz?`)) return;
+  try {
+    await fetch(`/api/mobile/device/${encodeURIComponent(deviceId)}`, { method:'DELETE' });
+    cadLog('MOBİL', `Cihaz silindi: ${deviceId}`, 'sys');
+  } catch { alert('Hata oluştu.'); }
+}
+
+async function banMobileDevice(deviceId) {
+  if (!confirm(`"${deviceId}" cihazını ENGELLEMEK istiyor musunuz? Tekrar bağlanamaz.`)) return;
+  try {
+    await fetch(`/api/mobile/ban/${encodeURIComponent(deviceId)}`, { method:'POST' });
+    cadLog('MOBİL', `Cihaz engellendi: ${deviceId}`, 'sys');
+  } catch { alert('Hata oluştu.'); }
+}
+
+// ══════════════════════════════════════════════════════
+// HARİTALAR UYGULAMASI (Leaflet + OpenStreetMap)
+// ══════════════════════════════════════════════════════
+function initMapApp() {
+  if (mapLeaflet) {
+    mapLeaflet.invalidateSize();
+    renderMapBlips();
+    return;
+  }
+  const el = document.getElementById('map-container');
+  if (!el) return;
+
+  mapLeaflet = L.map('map-container', { zoomControl: true }).setView([39.9, 32.8], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19
+  }).addTo(mapLeaflet);
+
+  renderMapBlips();
+}
+
+function renderMapBlips() {
+  if (!mapLeaflet) return;
+
+  const activeIds = new Set();
+
+  mobileDevices.forEach(d => {
+    if (!d.locationActive || d.lat == null || d.lng == null) {
+      // Blip yoksa veya konum kapalıysa markeri kaldır
+      if (mapBlips[d.deviceId]) {
+        mapLeaflet.removeLayer(mapBlips[d.deviceId]);
+        delete mapBlips[d.deviceId];
+      }
+      return;
+    }
+
+    activeIds.add(d.deviceId);
+
+    // Kırmızı animasyonlu blip ikonu
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="map-blip-wrap">
+               <div class="map-blip-pulse"></div>
+               <div class="map-blip-dot"></div>
+             </div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -12],
+    });
+
+    if (mapBlips[d.deviceId]) {
+      mapBlips[d.deviceId].setLatLng([d.lat, d.lng]);
+    } else {
+      const marker = L.marker([d.lat, d.lng], { icon })
+        .addTo(mapLeaflet)
+        .bindTooltip(`<div class="map-tooltip">${escH(d.username)}</div>`, {
+          permanent: false,
+          direction: 'top',
+          className: 'map-tt',
+        });
+      mapBlips[d.deviceId] = marker;
+    }
+  });
+
+  // Artık aktif olmayan markerleri temizle
+  Object.keys(mapBlips).forEach(id => {
+    if (!activeIds.has(id)) {
+      mapLeaflet.removeLayer(mapBlips[id]);
+      delete mapBlips[id];
+    }
+  });
 }
 
 // ══════════════════════════════════════════════════════
