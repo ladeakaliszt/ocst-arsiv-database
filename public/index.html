@@ -6,17 +6,24 @@
 <title>OCST BİLGİ SİSTEMLERİ</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="desktop.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
 
-<!-- GİRİŞ -->
+<!-- ══ GİRİŞ ══ -->
 <div id="login-screen">
-  <div class="login-wallpaper"><div class="wp-stars"></div><div class="wp-fog"></div><div class="wp-mountain"></div><div class="wp-treeline"></div><div class="wp-glow"></div></div>
+  <div class="login-wallpaper">
+    <div class="wp-stars"></div><div class="wp-fog"></div>
+    <div class="wp-mountain"></div><div class="wp-treeline"></div><div class="wp-glow"></div>
+  </div>
   <div class="login-panel">
     <div class="login-top-bar">
       <div class="login-logo">
         <div class="logo-shield">⬡</div>
-        <div class="logo-text"><span class="logo-title">OCST BİLGİ SİSTEMLERİ</span><span class="logo-sub">ORANGE COUNTY SHERIFF'S TECHNOLOGY</span></div>
+        <div class="logo-text">
+          <span class="logo-title">OCST BİLGİ SİSTEMLERİ</span>
+          <span class="logo-sub">ORANGE COUNTY SHERIFF'S TECHNOLOGY</span>
+        </div>
       </div>
     </div>
     <div class="login-divider"></div>
@@ -32,14 +39,20 @@
       </div>
     </div>
     <div class="login-divider"></div>
-    <div class="login-footer"><button class="login-btn" onclick="doLogin()"><span class="login-btn-arrow">▶</span> Oturumu Aç</button></div>
+    <div class="login-footer">
+      <button class="login-btn" onclick="doLogin()"><span class="login-btn-arrow">▶</span> Oturumu Aç</button>
+    </div>
   </div>
 </div>
 
-<!-- MASAÜSTÜ -->
+<!-- ══ MASAÜSTÜ ══ -->
 <div id="desktop" style="display:none">
-  <div class="desktop-wallpaper"><div class="wp-stars"></div><div class="wp-fog"></div><div class="wp-mountain"></div><div class="wp-treeline"></div><div class="wp-glow"></div></div>
+  <div class="desktop-wallpaper">
+    <div class="wp-stars"></div><div class="wp-fog"></div>
+    <div class="wp-mountain"></div><div class="wp-treeline"></div><div class="wp-glow"></div>
+  </div>
 
+  <!-- İKONLAR -->
   <div class="desktop-icons">
     <div class="desktop-icon" ondblclick="openApp('arsiv')" onclick="selectIcon(this)">
       <div class="icon-img"><div class="icon-arsiv"><div class="ic-badge">ARŞ</div></div></div>
@@ -50,12 +63,8 @@
       <div class="icon-label">Çağrı Yönetim</div>
     </div>
     <div class="desktop-icon" ondblclick="openApp('personel')" onclick="selectIcon(this)">
-      <div class="icon-img"><div class="icon-personel"></div></div>
+      <div class="icon-img"><div class="icon-personel"><div class="ic-badge">PRS</div></div></div>
       <div class="icon-label">Personel</div>
-    </div>
-    <div class="desktop-icon" ondblclick="openApp('mobil')" onclick="selectIcon(this)">
-      <div class="icon-img"><div class="icon-mobil"><div class="ic-badge">MOB</div></div></div>
-      <div class="icon-label">Mobil Cihazlar</div>
     </div>
     <div class="desktop-icon" ondblclick="openApp('iletisim')" onclick="selectIcon(this)">
       <div class="icon-img"><div class="icon-iletisim"><div class="ic-mic"></div><div class="ic-badge">SES</div></div></div>
@@ -65,43 +74,64 @@
       <div class="icon-img"><div class="icon-ayarlar"><div class="ic-gear">⚙</div></div></div>
       <div class="icon-label">Ayarlar</div>
     </div>
+
+    <!-- MOBİL CİHAZLAR İKONU -->
+    <div class="desktop-icon" ondblclick="openApp('mobil')" onclick="selectIcon(this)">
+      <div class="icon-img">📱</div>
+      <div class="icon-label">Mobil Cihazlar</div>
+    </div>
+
+    <!-- HARİTALAR İKONU -->
+    <div class="desktop-icon" ondblclick="openApp('harita')" onclick="selectIcon(this)">
+      <div class="icon-img">🗺️</div>
+      <div class="icon-label">Haritalar</div>
+    </div>
   </div>
 
-  <!-- ARŞİV PENCERESİ -->
+  <!-- ══ ARŞİV PENCERESİ ══ -->
   <div class="window" id="win-arsiv" style="display:none;width:1000px;height:680px;top:40px;left:60px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-arsiv')">
       <div class="titlebar-left"><span class="titlebar-icon">📁</span><span class="titlebar-title">Adli Arşiv — OCST Bilgi Sistemleri</span></div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-arsiv')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-arsiv')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-arsiv')">✕</button></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-arsiv')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-arsiv')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-arsiv')">✕</button>
+      </div>
     </div>
     <div class="window-body" style="padding:0;overflow:hidden;">
       <iframe id="arsiv-iframe" src="" style="width:100%;height:100%;border:none;"></iframe>
     </div>
   </div>
 
-  <!-- CAD PENCERESİ -->
-  <div class="window" id="win-cagri" style="display:none;width:1160px;height:740px;top:30px;left:80px;">
+  <!-- ══ CAD PENCERESİ ══ -->
+  <div class="window" id="win-cagri" style="display:none;width:1140px;height:720px;top:30px;left:80px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-cagri')">
       <div class="titlebar-left">
         <span class="titlebar-icon">📡</span>
-        <span class="titlebar-title">Çağrı Yönetim Merkezi — CAD v4.2</span>
+        <span class="titlebar-title">Çağrı Yönetim Merkezi — CAD v4.1</span>
         <span id="cad-panic-count" class="cad-panic-badge" style="display:none">0 PANİK</span>
       </div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-cagri')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-cagri')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-cagri')">✕</button></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-cagri')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-cagri')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-cagri')">✕</button>
+      </div>
     </div>
     <div class="window-body cad-body">
       <div class="cad-topbar">
         <span class="cad-dot blink-red" id="cad-ws-dot">●</span>
         <span id="cad-ws-label" class="cad-info" style="color:#666">BAĞLANIYOR...</span>
-        <span class="cad-sep">│</span><span class="cad-info">ÜNİTE: OCST-7 MERKEZ</span>
-        <span class="cad-sep">│</span><span id="cad-clock" class="cad-info"></span>
-        <span class="cad-sep">│</span><span id="cad-total" class="cad-info">TOPLAM: 0 ÇAĞRI</span>
-        <span class="cad-sep" style="margin-left:auto">│</span>
-        <button class="cad-dispatch-btn" onclick="openDispatchForm()">[ + ÇAĞRI OLUŞTUR ]</button>
+        <span class="cad-sep">│</span>
+        <span class="cad-info">ÜNİTE: OCST-7 MERKEZ</span>
+        <span class="cad-sep">│</span>
+        <span id="cad-clock" class="cad-info"></span>
+        <span class="cad-sep">│</span>
+        <span id="cad-total" class="cad-info">TOPLAM: 0 ÇAĞRI</span>
       </div>
 
       <div class="cad-main">
-        <!-- SOL: Liste -->
-        <div class="cad-left">
+        <!-- SOL: Çağrı listesi -->
+        <div class="cad-left" id="cad-left">
           <div class="cad-section-hdr">
             <span>[ AKTİF ÇAĞRILAR ]</span>
             <div class="cad-filter-btns">
@@ -112,59 +142,68 @@
               <button class="cad-filter" onclick="filterCalls('kapatildi',this)">KAPALI</button>
             </div>
           </div>
-          <div id="cad-call-list" class="cad-call-list"><div class="cad-empty">► Bağlanılıyor...</div></div>
+          <button class="cad-create-btn" onclick="showCADCreateForm()">[ + ÇAĞRI OLUŞTUR ]</button>
+          <div id="cad-call-list" class="cad-call-list">
+            <div class="cad-empty">► Bağlanılıyor...</div>
+          </div>
         </div>
 
-        <!-- ORTA: Detay + Dispatch formu -->
-        <div class="cad-mid" style="position:relative;">
+        <!-- ÇAĞRI OLUŞTUR PANELİ (başlangıçta gizli) -->
+        <div id="cad-create-panel" class="cad-create-panel" style="display:none;">
+          <div class="cad-section-hdr" style="justify-content:space-between;">
+            <span>[ ÇAĞRI OLUŞTUR ]</span>
+            <button class="cad-filter" onclick="hideCADCreateForm()" style="color:#ff8888;border-color:#4a2a2a;">✕ KAPAT</button>
+          </div>
+          <div class="ccf-body">
+            <!-- Cihaz seçimi -->
+            <div class="ccf-field">
+              <label class="ccf-label">HEDEF CİHAZ</label>
+              <select id="ccf-device-select" class="ccf-select">
+                <option value="">-- Cihaz seçin --</option>
+              </select>
+            </div>
+            <!-- Çağrı kodu -->
+            <div class="ccf-field">
+              <label class="ccf-label">ÇAĞRI KODU / BAŞLIK</label>
+              <input type="text" id="ccf-code" class="ccf-input"
+                placeholder="90, 91A, 99 veya serbest metin..." autocomplete="off" spellcheck="false" maxlength="80">
+              <div class="ccf-hint">Bilinen kod (90-99): şablon. Serbest metin: Gemini dönüştürür.</div>
+            </div>
+            <!-- Detay -->
+            <div class="ccf-field">
+              <label class="ccf-label">DETAY (OPSİYONEL)</label>
+              <textarea id="ccf-detail" class="ccf-textarea" placeholder="Ek açıklama..." spellcheck="false" rows="3"></textarea>
+            </div>
+            <!-- Adres + cihaz konum butonu -->
+            <div class="ccf-field">
+              <label class="ccf-label">ADRES / KONUM</label>
+              <div class="ccf-row">
+                <input type="text" id="ccf-address" class="ccf-input" placeholder="Adres yazın..." spellcheck="false" style="flex:1;">
+                <button class="ccf-gps-btn" onclick="getDeviceLocation()">📍 Cihaz Konumu</button>
+              </div>
+              <div id="ccf-gps-status" class="ccf-hint"></div>
+            </div>
+            <!-- Gemini -->
+            <button class="ccf-gemini-btn" onclick="generateSmsWithGemini()">⚡ GEMİNİ İLE SMS HAZIRLA</button>
+            <!-- SMS önizleme -->
+            <div class="ccf-field">
+              <label class="ccf-label">SMS ÖNİZLEME (112)</label>
+              <div id="ccf-sms-preview" class="ccf-sms-preview"></div>
+            </div>
+            <!-- Durum -->
+            <div id="ccf-status" class="ccf-status"></div>
+            <!-- Gönder -->
+            <button class="ccf-submit-btn" onclick="submitCADCreate()">[ ÇAĞRI GÖNDER → MOBİLE ]</button>
+          </div>
+        </div>
+
+        <!-- ORTA: Çağrı detayı -->
+        <div class="cad-mid">
           <div class="cad-section-hdr"><span>[ ÇAĞRI DETAYI ]</span></div>
           <div id="cad-detail" class="cad-detail-empty">
-            <div class="cad-detail-placeholder"><div style="font-size:32px;margin-bottom:10px">📡</div><div>Çağrı seçin</div></div>
-          </div>
-
-          <!-- DISPATCH FORM (overlay) -->
-          <div id="dispatch-panel" class="dispatch-panel" style="display:none;">
-            <div class="dispatch-header">
-              <span>[ YENİ ÇAĞRI OLUŞTUR ]</span>
-              <button class="dp-close" onclick="closeDispatchForm()">✕</button>
-            </div>
-            <div class="dispatch-body">
-
-              <!-- 1. Cihaz seç -->
-              <div class="dp-section-label">1. ÇAĞRI GİDECEK CİHAZ (Bağlı Mobil)</div>
-              <div id="disp-device-select" class="disp-device-select"></div>
-
-              <!-- 2. Kod -->
-              <div class="dp-section-label">2. ACİL KOD <span class="dp-hint">(90-99 arası veya boş bırak)</span></div>
-              <div class="dp-row">
-                <input type="text" id="disp-code" class="dp-input" placeholder="Örn: 91, 90A..." maxlength="4" style="width:100px">
-                <button class="dp-gemini-btn" onclick="dispatchGeminiAnalyze()">✨ Gemini Analiz Et</button>
-              </div>
-              <div id="disp-gemini-result" class="dp-gemini-result"></div>
-
-              <!-- 3. Başlık -->
-              <div class="dp-section-label">3. ÇAĞRI BAŞLIĞI</div>
-              <input type="text" id="disp-title" class="dp-input dp-input-full" placeholder="Otomatik veya manuel başlık..." maxlength="120" spellcheck="false">
-
-              <!-- 4. Detay / SMS gövdesi -->
-              <div class="dp-section-label">4. ÇAĞRI İÇERİĞİ / SMS GÖVDESİ</div>
-              <textarea id="disp-detail" class="dp-textarea" placeholder="Detaylı açıklama. [KONUM] yazarsanız otomatik doldurulur." spellcheck="false"></textarea>
-
-              <!-- 5. Adres -->
-              <div class="dp-section-label">5. ADRES / KONUM</div>
-              <div class="dp-row">
-                <input type="text" id="disp-location" class="dp-input" style="flex:1" placeholder="Adres veya koordinat..." spellcheck="false">
-                <button class="dp-gps-btn" onclick="dispatchGetDeviceLocation()">📍 Cihaz Konumu Al</button>
-              </div>
-              <div id="disp-gps-status" class="dp-gps-status"></div>
-
-              <div id="disp-error" class="dp-error"></div>
-
-              <div class="dp-actions">
-                <button class="dp-submit-btn" onclick="submitDispatch()">[ ÇAĞRI OLUŞTUR VE GÖNDER ]</button>
-                <button class="dp-cancel-btn" onclick="closeDispatchForm()">[ İPTAL ]</button>
-              </div>
-              <div class="dp-info">Mobil cihaz bağlıysa ekranında büyük "SMS GÖNDER" butonu çıkar. Değilse bir sonraki açılışta bildirim gösterir.</div>
+            <div class="cad-detail-placeholder">
+              <div style="font-size:32px;margin-bottom:10px">📡</div>
+              <div>Çağrı seçin</div>
             </div>
           </div>
         </div>
@@ -172,24 +211,34 @@
         <!-- SAĞ: Personel + Log -->
         <div class="cad-right">
           <div class="cad-section-hdr"><span>[ AKTİF PERSONEL ]</span></div>
-          <div id="cad-units" class="cad-units"><div class="cad-empty" style="font-size:10px;padding:8px">Yükleniyor...</div></div>
+          <div id="cad-units" class="cad-units">
+            <div class="cad-empty" style="font-size:10px;padding:8px">Personel yükleniyor...</div>
+          </div>
+
           <div class="cad-section-hdr" style="margin-top:12px"><span>[ FREKANS ]</span></div>
           <div class="cad-freq">
             <div class="freq-bar"><div class="freq-label">CH1 — TAKTİK</div><div class="freq-wave"><div class="freq-anim"></div></div></div>
             <div class="freq-bar"><div class="freq-label">CH2 — YEDEK</div><div class="freq-wave"><div class="freq-anim-slow"></div></div></div>
           </div>
+
           <div class="cad-section-hdr" style="margin-top:12px"><span>[ SİSTEM LOG ]</span></div>
-          <div id="cad-log" class="cad-log"><div class="log-entry log-sys">[--:--] SİSTEM BAŞLATILDI</div></div>
+          <div id="cad-log" class="cad-log">
+            <div class="log-entry log-sys">[--:--] SİSTEM BAŞLATILDI</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- PERSONEL PENCERESİ -->
+  <!-- ══ PERSONEL PENCERESİ ══ -->
   <div class="window" id="win-personel" style="display:none;width:500px;height:460px;top:50px;left:120px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-personel')">
-      <div class="titlebar-left"><span class="titlebar-icon">👥</span><span class="titlebar-title">Personel Takip</span></div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-personel')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-personel')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-personel')">✕</button></div>
+      <div class="titlebar-left"><span class="titlebar-icon">👥</span><span class="titlebar-title">Personel Takip — Aktif Kullanıcılar</span></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-personel')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-personel')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-personel')">✕</button>
+      </div>
     </div>
     <div class="window-body" style="padding:0;">
       <div class="pers-topbar">
@@ -199,43 +248,35 @@
         <span class="pers-note">Çıkış yapıldığında otomatik silinir</span>
       </div>
       <div class="pers-header-row">
-        <span class="ph-name">KULLANICI ADI</span><span class="ph-time">GİRİŞ</span><span class="ph-seen">SON AKTİVİTE</span><span class="ph-status">DURUM</span>
+        <span class="ph-name">KULLANICI ADI</span>
+        <span class="ph-time">GİRİŞ SAATİ</span>
+        <span class="ph-seen">SON AKTİVİTE</span>
+        <span class="ph-status">DURUM</span>
       </div>
-      <div id="pers-list" class="pers-list"><div class="pers-empty">Henüz aktif personel yok.</div></div>
+      <div id="pers-list" class="pers-list">
+        <div class="pers-empty">Henüz aktif personel yok.</div>
+      </div>
     </div>
   </div>
 
-  <!-- MOBİL CİHAZLAR PENCERESİ -->
-  <div class="window" id="win-mobil" style="display:none;width:620px;height:500px;top:60px;left:140px;">
-    <div class="window-titlebar" onmousedown="dragStart(event,'win-mobil')">
-      <div class="titlebar-left"><span class="titlebar-icon">📱</span><span class="titlebar-title">Mobil Cihazlar</span></div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-mobil')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-mobil')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-mobil')">✕</button></div>
-    </div>
-    <div class="window-body" style="padding:0;display:flex;flex-direction:column;">
-      <div class="mob-tabs">
-        <button class="mob-tab-btn active" data-tab="aktif" onclick="switchMobilesTab('aktif')">[ BAĞLI CİHAZLAR ]</button>
-        <button class="mob-tab-btn" data-tab="engellenen" onclick="switchMobilesTab('engellenen')">[ ENGELLENELENLer ]</button>
-      </div>
-      <div class="mob-devices-header">
-        <span class="mdh-name">CİHAZ / KULLANICI</span>
-        <span class="mdh-loc">KONUM</span>
-        <span class="mdh-action">İŞLEM</span>
-      </div>
-      <div id="mob-devices-list" class="mob-devices-list"><div class="mob-empty">Yükleniyor...</div></div>
-    </div>
-  </div>
-
-  <!-- İLETİŞİM PENCERESİ -->
-  <div class="window" id="win-iletisim" style="display:none;width:420px;height:560px;top:50px;left:160px;">
+  <!-- ══ İLETİŞİM PENCERESİ ══ -->
+  <div class="window" id="win-iletisim" style="display:none;width:420px;height:560px;top:50px;left:140px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-iletisim')">
       <div class="titlebar-left"><span class="titlebar-icon">🎙️</span><span class="titlebar-title">İletişim — Ses Kanalı</span></div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-iletisim')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-iletisim')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-iletisim')">✕</button></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-iletisim')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-iletisim')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-iletisim')">✕</button>
+      </div>
     </div>
     <div class="window-body" style="padding:0;display:flex;flex-direction:column;background:#1a1a2e;">
       <div class="comm-header">
         <div class="comm-channel-info">
           <div class="comm-dot blink-green"></div>
-          <div><div class="comm-channel-name">OCST — Genel Ses Kanalı</div><div class="comm-channel-sub">Tüm personel erişebilir</div></div>
+          <div>
+            <div class="comm-channel-name">OCST — Genel Ses Kanalı</div>
+            <div class="comm-channel-sub">Tüm personel erişebilir</div>
+          </div>
         </div>
       </div>
       <div style="flex:1;position:relative;">
@@ -250,17 +291,20 @@
     </div>
   </div>
 
-  <!-- AYARLAR PENCERESİ -->
-  <div class="window" id="win-ayarlar" style="display:none;width:400px;height:360px;top:80px;left:200px;">
+  <!-- ══ AYARLAR PENCERESİ ══ -->
+  <div class="window" id="win-ayarlar" style="display:none;width:400px;height:360px;top:80px;left:180px;">
     <div class="window-titlebar" onmousedown="dragStart(event,'win-ayarlar')">
       <div class="titlebar-left"><span class="titlebar-icon">⚙️</span><span class="titlebar-title">Ayarlar</span></div>
-      <div class="titlebar-btns"><button class="tbtn tbtn-min" onclick="minimizeWin('win-ayarlar')">─</button><button class="tbtn tbtn-max" onclick="maximizeWin('win-ayarlar')">□</button><button class="tbtn tbtn-close" onclick="closeWin('win-ayarlar')">✕</button></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-ayarlar')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-ayarlar')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-ayarlar')">✕</button>
+      </div>
     </div>
     <div class="window-body" style="padding:20px">
       <div class="settings-row"><div class="settings-label">Oturum Açan</div><div class="settings-value" id="settings-username">—</div></div>
-      <div class="settings-row"><div class="settings-label">Sistem</div><div class="settings-value">OCST BİLGİ SİSTEMLERİ v4.2</div></div>
+      <div class="settings-row"><div class="settings-label">Sistem</div><div class="settings-value">OCST BİLGİ SİSTEMLERİ v4.1</div></div>
       <div class="settings-row"><div class="settings-label">Build</div><div class="settings-value">2020.08.08 — MDC-7</div></div>
-      <div class="settings-row"><div class="settings-label">Gemini API</div><div class="settings-value" id="settings-gemini">GEMINI_API_KEY env var</div></div>
       <div class="settings-divider"></div>
       <button class="settings-logout-btn" onclick="doLogout()">[ OTURUMU KAPAT ]</button>
     </div>
@@ -268,7 +312,9 @@
 
   <!-- GÖREV ÇUBUĞU -->
   <div id="taskbar">
-    <div id="taskbar-start" onclick="toggleStartMenu()"><span class="start-logo">⬡</span><span class="start-text">OCST</span></div>
+    <div id="taskbar-start" onclick="toggleStartMenu()">
+      <span class="start-logo">⬡</span><span class="start-text">OCST</span>
+    </div>
     <div id="taskbar-windows"></div>
     <div id="taskbar-tray">
       <span id="cad-tray-alert" style="display:none;color:#ff4444;font-size:10px;margin-right:8px;animation:blink-r 0.5s infinite">🚨 PANİK</span>
@@ -278,21 +324,31 @@
 
   <!-- START MENÜSÜ -->
   <div id="start-menu" style="display:none">
-    <div class="start-header"><div class="start-avatar">👤</div><div class="start-username" id="start-username"></div></div>
+    <div class="start-header">
+      <div class="start-avatar">👤</div>
+      <div class="start-username" id="start-username"></div>
+    </div>
     <div class="start-items">
       <div class="start-item" onclick="openApp('arsiv');toggleStartMenu()"><span class="si-icon">📁</span> Adli Arşiv</div>
       <div class="start-item" onclick="openApp('cagri');toggleStartMenu()"><span class="si-icon">📡</span> Çağrı Yönetim</div>
       <div class="start-item" onclick="openApp('personel');toggleStartMenu()"><span class="si-icon">👥</span> Personel</div>
-      <div class="start-item" onclick="openApp('mobil');toggleStartMenu()"><span class="si-icon">📱</span> Mobil Cihazlar</div>
       <div class="start-item" onclick="openApp('iletisim');toggleStartMenu()"><span class="si-icon">🎙️</span> İletişim</div>
       <div class="start-item" onclick="openApp('ayarlar');toggleStartMenu()"><span class="si-icon">⚙️</span> Ayarlar</div>
+      <div class="start-item" onclick="openApp('mobil');toggleStartMenu()"><span class="si-icon">📱</span> Mobil Cihazlar</div>
+      <div class="start-item" onclick="openApp('harita');toggleStartMenu()"><span class="si-icon">🗺️</span> Haritalar</div>
     </div>
-    <div class="start-footer"><button class="start-logout" onclick="doLogout()">⏻ Oturumu Kapat</button></div>
+    <div class="start-footer">
+      <button class="start-logout" onclick="doLogout()">⏻ Oturumu Kapat</button>
+    </div>
   </div>
 
-  <!-- PANİK POPUP -->
+  <!-- ══ PANİK POPUP ══ -->
   <div id="panic-popup" style="display:none">
-    <div class="pp-header"><span class="pp-icon">🚨</span><span class="pp-title">PANİK BUTONU BASILDI</span><button class="pp-close" onclick="closePanicPopup()">✕</button></div>
+    <div class="pp-header">
+      <span class="pp-icon">🚨</span>
+      <span class="pp-title">PANİK BUTONU BASILDI</span>
+      <button class="pp-close" onclick="closePanicPopup()">✕</button>
+    </div>
     <div class="pp-body">
       <div class="pp-row"><span class="pp-label">PERSONEL</span><span class="pp-val" id="pp-author">—</span></div>
       <div class="pp-row"><span class="pp-label">KONUM</span><span class="pp-val" id="pp-location">—</span></div>
@@ -308,7 +364,8 @@
   <div id="delete-modal-cad" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
     <div class="dm-box">
       <div class="dm-header">[ ÇAĞRI SİLME DOĞRULAMASI ]</div>
-      <div class="dm-body"><p>Silme şifresini girin:</p>
+      <div class="dm-body">
+        <p>Bu işlemi onaylamak için silme şifresini girin:</p>
         <input type="password" id="cad-delete-pass" class="dm-input" placeholder="Şifre..." maxlength="20">
         <div id="cad-delete-error" class="dm-error"></div>
       </div>
@@ -323,7 +380,8 @@
   <div id="assign-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
     <div class="dm-box">
       <div class="dm-header">[ PERSONEL ATAMA ]</div>
-      <div class="dm-body"><p style="margin-bottom:10px;color:#8aaccc;font-size:11px;">Atanacak personeli seçin:</p>
+      <div class="dm-body">
+        <p style="margin-bottom:10px;color:#8aaccc;font-size:11px;">Çağrıya atanacak personeli seçin:</p>
         <div id="assign-personnel-list" class="assign-list"></div>
         <div id="assign-error" class="dm-error"></div>
       </div>
@@ -334,7 +392,49 @@
     </div>
   </div>
 
+  <!-- ══ MOBİL CİHAZLAR PENCERESİ ══ -->
+  <div id="win-mobil" class="window" style="display:none; width:620px; height:500px; top:80px; left:200px;">
+    <div class="window-titlebar" onmousedown="dragStart(event,'win-mobil')">
+      <div class="titlebar-left"><span class="titlebar-icon">📱</span><span class="titlebar-title">Mobil Cihazlar</span></div>
+      <div class="titlebar-btns">
+        <button class="tbtn tbtn-min" onclick="minimizeWin('win-mobil')">─</button>
+        <button class="tbtn tbtn-max" onclick="maximizeWin('win-mobil')">□</button>
+        <button class="tbtn tbtn-close" onclick="closeWin('win-mobil')">✕</button>
+      </div>
+    </div>
+    <div class="window-body" style="padding:0;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- Sekmeler -->
+      <div class="mobil-tabs">
+        <button class="mobil-tab-btn active" data-tab="aktif" onclick="switchMobilTab('aktif')">📱 AKTİF CİHAZLAR</button>
+        <button class="mobil-tab-btn" data-tab="engellenenler" onclick="switchMobilTab('engellenenler')">🚫 ENGELLENENLER</button>
+      </div>
+      <div style="font-size:10px;color:#6a8aaa;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid #1a3a5a;flex-shrink:0;">
+        Kayıt sadece PC'den silinebilir. Engellenen cihazlar tekrar bağlanamaz.
+      </div>
+      <div id="mobil-list" style="overflow-y:auto;flex:1;padding:12px;">
+        <div class="cad-empty">► Bağlı mobil cihaz yok.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HARİTALAR PENCERESİ ══ -->
+  <div id="win-harita" class="window" style="display:none; width:800px; height:560px; top:60px; left:100px; overflow:hidden;">
+    <div class="win-titlebar" onmousedown="dragStart(event, 'win-harita')">
+      <span class="win-title">🗺️ HARİTALAR — CANLI KONUM</span>
+      <div class="win-controls">
+        <button class="win-btn win-min" onclick="minimizeWin('win-harita')">─</button>
+        <button class="win-btn win-max" onclick="maximizeWin('win-harita')">□</button>
+        <button class="win-btn win-close" onclick="closeWin('win-harita')">✕</button>
+      </div>
+    </div>
+    <div class="win-body" style="padding:0; overflow:hidden; flex:1; display:flex; flex-direction:column;">
+      <div id="map-container" style="flex:1; width:100%; height:100%;"></div>
+    </div>
+  </div>
+
 </div><!-- /desktop -->
+
 <script src="desktop.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
